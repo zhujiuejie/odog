@@ -1,0 +1,439 @@
+<!--
+  odog-farm: 一个简单的像素风格单页农场游戏
+  功能：种子 / 种植 / 收获 / 经验值 / 升级 / 本地排行榜
+  链上交互：Buy Seed 会使用 ethers.js 调用 ERC-20 transfer() 将 ODOG 发到销毁地址
+  许可：MIT
+  使用方法：把此文件放到 GitHub Pages 仓库（例如 /games/farm.html），然后访问 https://<你的用户名>.github.io/odogmeme/games/farm.html
+-->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>ODOG 农场（像素）</title>
+  <style>
+    /* 简单像素风格 + 界面 */
+    :root { --bg:#0b1220; --panel:#081025; --accent:#ffd36b; }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071022, #07182b);font-family: "PingFang SC","Helvetica Neue",Arial; color:#e6eef8}
+    .wrap{max-width:980px;margin:18px auto;padding:18px;}
+    header{display:flex;align-items:center;gap:14px}
+    .logo{width:64px;height:64px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#071022;font-weight:800;font-size:18px}
+    h1{margin:0;font-size:22px}
+    p.lead{margin:4px 0 14px;color:#bcd1ea}
+    .panel{background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;box-shadow:0 8px 20px rgba(2,6,23,0.6)}
+    .topline{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    button{cursor:pointer;border-radius:8px;padding:8px 10px;border:none;background:#1e90ff;color:white;font-weight:600}
+    .muted{color:#9fb4d8;font-size:13px}
+    .stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+    .stat{background:rgba(255,255,255,0.02);padding:8px 10px;border-radius:8px;font-weight:700}
+    .game-area{display:flex;gap:14px;margin-top:14px}
+    /* 画布容器：左边游戏画布，右边控制面板 */
+    .left{flex:1;display:flex;flex-direction:column;gap:10px;align-items:center}
+    canvas{image-rendering: pixelated;border:3px solid rgba(255,255,255,0.03);background:#061225}
+    .grid-label{font-size:13px;color:#cfe0ff;margin-top:6px}
+    .right{width:320px}
+    .btn-secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#bfe0ff}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:10px;border-radius:10px;margin-bottom:10px}
+    input[type="text"]{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);width:100%;background:transparent;color:inherit}
+    .small{font-size:13px;color:#9fb4d8}
+    .danger{background:#ff6b6b;color:white}
+    footer{margin-top:18px;color:#9fb4d8;font-size:13px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">ODOG</div>
+      <div>
+        <h1>ODOG 像素农场（测试版）</h1>
+        <p class="lead">用 ODOG 买种子 → 种植 → 收获经验 → 升级。销毁 ODOG 可获得游戏内种子（建议先用小额测试）。</p>
+      </div>
+    </header>
+
+    <div class="panel game-area">
+      <div class="left">
+        <canvas id="farmCanvas" width="320" height="256"></canvas>
+        <div class="grid-label muted">点击空地种植；成熟后点击收获。</div>
+        <div class="stats">
+          <div class="stat">等级: <span id="level">1</span></div>
+          <div class="stat">经验: <span id="xp">0</span></div>
+          <div class="stat">种子: <span id="seeds">0</span></div>
+          <div class="stat">已烧 ODOG: <span id="burned">0</span></div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><strong>购买种子（链上）</strong><div class="small muted">使用 ODOG 购买并销毁</div></div>
+            <div style="text-align:right">
+              <div class="small muted">网络：X Layer</div>
+              <div class="small muted">Chain ID: 196</div>
+            </div>
+          </div>
+
+          <div style="margin-top:8px;">
+            <div class="small muted">设置：每颗种子价格（ODOG）</div>
+            <input id="seedPrice" type="text" value="1"/>
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button id="connectBtn">连接钱包</button>
+              <button id="buyBtn" class="btn-secondary">买 1 粒</button>
+            </div>
+            <div style="margin-top:8px;font-size:13px;color:#9fb4d8">
+              说明：购买会在钱包弹窗中签名并发送交易；确认后游戏会增加种子数量。
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <strong>排行榜（本地）</strong>
+          <div class="small muted">本地排行榜保存在浏览器（localStorage），未来可以外部聚合。</div>
+          <div style="margin-top:8px">
+            <input id="playerName" placeholder="输入你的昵称 (最多16字)"/>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button id="saveScore">提交分数</button>
+              <button id="clearLocal" class="btn-secondary">清空本地</button>
+            </div>
+            <div id="board" style="margin-top:8px;max-height:200px;overflow:auto"></div>
+          </div>
+        </div>
+
+        <div class="card small muted">
+          <strong>提示 / 测试建议</strong>
+          <ul>
+            <li>首次请先点击“连接钱包”，并切换到 X Layer（允许添加网络）。</li>
+            <li>请先用极小金额测试购买（例如 0.001 ODOG），确认签名与转账后再放大。</li>
+            <li>销毁地址（默认）：<code>0x000000000000000000000000000000000000dEaD</code></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <footer class="muted">注意：页面会尝试切换/添加 X Layer 网络（chainId = 0xC4）。任何链上转账请谨慎。</footer>
+  </div>
+
+  <!-- ethers CDN（用于钱包交互） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.umd.min.js"></script>
+
+  <script>
+  // ============== 配置项（如果需要改动，只改这里） ==============
+  const ODOG_CONTRACT = "0xc3f431cd1b7220cca703ee08c24ca645a71e72c8".toLowerCase(); // 你给的合约地址
+  const BURN_ADDRESS = "0x000000000000000000000000000000000000dEaD"; // 销毁地址（常见）
+  const XLAYER_CHAIN_ID_DEC = 196;
+  const XLAYER_CHAIN_ID_HEX = "0xC4"; // 196 十六进制
+  const XLAYER_RPC = "https://rpc.xlayer.tech"; // 也可以替换/添加备用 RPC
+  const LOCAL_STORAGE_KEY = "odog_farm_v1";
+  const BOARD_KEY = "odog_farm_board_v1";
+
+  // 最小的 ERC-20 ABI：decimals() & transfer()
+  const ERC20_ABI = [
+    "function decimals() view returns (uint8)",
+    "function transfer(address to, uint256 amount) returns (bool)",
+    "function symbol() view returns (string)",
+    "function name() view returns (string)"
+  ];
+
+  // ============== 游戏逻辑 ==============
+  const canvas = document.getElementById("farmCanvas");
+  const ctx = canvas.getContext("2d");
+  // 画布设定：格子 5x4，像素化放大
+  const COLS = 5, ROWS = 4;
+  const CELL_W = 48, CELL_H = 48;
+  canvas.width = COLS * CELL_W;
+  canvas.height = ROWS * CELL_H;
+  canvas.style.width = (canvas.width*1.2) + "px";
+  canvas.style.height = (canvas.height*1.2) + "px";
+
+  // 游戏状态
+  let state = {
+    level:1,
+    xp:0,
+    seeds:0,
+    burnedTotal: 0,
+    plots: [] // each plot: {status: "empty"|"growing"|"ready", plantedAt, growTimeSec, seedType}
+  };
+
+  // 初始化 plots
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      state.plots.push({status:"empty"});
+    }
+  }
+
+  // 加载/保存 state
+  function saveState(){ localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state)); }
+  function loadState(){
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if(raw){ try{ state = JSON.parse(raw); }catch(e){ console.warn(e); } }
+  }
+  loadState();
+
+  // UI 元素
+  const levelEl = document.getElementById("level");
+  const xpEl = document.getElementById("xp");
+  const seedsEl = document.getElementById("seeds");
+  const burnedEl = document.getElementById("burned");
+  function refreshStats(){
+    levelEl.innerText = state.level;
+    xpEl.innerText = state.xp + " / " + (state.level*100);
+    seedsEl.innerText = state.seeds;
+    burnedEl.innerText = state.burnedTotal;
+    saveState();
+  }
+
+  // 渲染
+  function draw(){
+    // 背景
+    ctx.fillStyle = "#071022";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    // 画格子
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const i = r*COLS + c;
+        const plot = state.plots[i];
+        const x = c*CELL_W, y = r*CELL_H;
+        // 地皮
+        ctx.fillStyle = "#0b2a2a";
+        ctx.fillRect(x+6, y+6, CELL_W-12, CELL_H-12);
+        // 状态
+        if(plot.status === "empty"){
+          // 样式空地
+          ctx.fillStyle = "#254a42";
+          ctx.fillRect(x+14,y+18, CELL_W-28, CELL_H-36);
+        } else if(plot.status === "growing"){
+          // 画小苗（随时间增长）
+          const elapsed = (Date.now() - plot.plantedAt)/1000;
+          const frac = Math.min(1, elapsed/plot.growTimeSec);
+          const h = Math.floor((CELL_H-20)*frac);
+          ctx.fillStyle = "#6fe07f";
+          ctx.fillRect(x+14, y+ (CELL_H-14 - h), CELL_W-28, h);
+        } else if(plot.status === "ready"){
+          // 成熟大植物
+          ctx.fillStyle = "#34c759";
+          ctx.fillRect(x+10, y+8, CELL_W-20, CELL_H-20);
+          // 装饰像素眼睛（像素风）
+          ctx.fillStyle = "#071022";
+          ctx.fillRect(x+16,y+18,6,6);
+          ctx.fillRect(x+CELL_W-26,y+18,6,6);
+        }
+        // 画格子分割
+        ctx.strokeStyle = "rgba(255,255,255,0.02)";
+        ctx.strokeRect(x+6,y+6,CELL_W-12,CELL_H-12);
+      }
+    }
+  }
+
+  // 游戏主循环
+  function tick(){
+    // 检查成熟
+    let changed=false;
+    for(const p of state.plots){
+      if(p.status === "growing"){
+        const elapsed = (Date.now() - p.plantedAt)/1000;
+        if(elapsed >= p.growTimeSec){
+          p.status = "ready";
+          changed=true;
+        }
+      }
+    }
+    if(changed) saveState();
+    draw();
+    requestAnimationFrame(tick);
+  }
+  tick();
+  refreshStats();
+
+  // 点击画布：种植或收获
+  canvas.addEventListener("click", (ev)=>{
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const cx = (ev.clientX - rect.left) * scaleX;
+    const cy = (ev.clientY - rect.top) * scaleY;
+    const col = Math.floor(cx / CELL_W);
+    const row = Math.floor(cy / CELL_H);
+    if(col<0||col>=COLS||row<0||row>=ROWS) return;
+    const idx = row*COLS + col;
+    const plot = state.plots[idx];
+    if(plot.status === "empty"){
+      if(state.seeds <= 0){
+        alert("你没有种子了，先去购买（Buy Seed）或等待他人赠送。");
+        return;
+      }
+      // 种植：消耗 1 粒种子，生长时间随机 20~40 秒，经验由成熟后获得
+      state.seeds -= 1;
+      plot.status = "growing";
+      plot.plantedAt = Date.now();
+      plot.growTimeSec = 20 + Math.floor(Math.random()*21);
+      plot.seedType = "basic";
+      saveState();
+      refreshStats();
+      return;
+    } else if(plot.status === "growing"){
+      alert("还在生长中，耐心等待成熟。");
+      return;
+    } else if(plot.status === "ready"){
+      // 收获：获得经验，根据 seedType 给不同经验
+      let gained = 10;
+      if(plot.seedType === "basic") gained = 10;
+      // 清空格子
+      plot.status = "empty";
+      delete plot.plantedAt;
+      delete plot.growTimeSec;
+      delete plot.seedType;
+      // 加经验并检查升级
+      state.xp += gained;
+      checkLevelUp();
+      saveState();
+      refreshStats();
+      return;
+    }
+  });
+
+  // 等级提升
+  function checkLevelUp(){
+    const need = state.level * 100;
+    while(state.xp >= need){
+      state.xp -= need;
+      state.level += 1;
+    }
+  }
+
+  // ============== 本地排行榜 ==============
+  function loadBoard(){
+    const raw = localStorage.getItem(BOARD_KEY);
+    let arr = [];
+    if(raw) try{ arr = JSON.parse(raw);}catch(e){}
+    return arr;
+  }
+  function saveBoard(arr){ localStorage.setItem(BOARD_KEY, JSON.stringify(arr)); }
+  function renderBoard(){
+    const board = loadBoard();
+    const el = document.getElementById("board");
+    if(board.length === 0){ el.innerHTML = "<div class='small muted'>空</div>"; return; }
+    board.sort((a,b)=> (b.level - a.level) || (b.xp - a.xp));
+    el.innerHTML = board.slice(0,20).map((p,i)=> `<div style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.03)"><strong>#${i+1} ${escapeHtml(p.name)}</strong> <div class="small muted">等级 ${p.level} · XP ${p.xp}</div></div>`).join("");
+  }
+  function escapeHtml(t){ return String(t||"").replace(/[&<>'"]/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','\'':'&#39;','"':'&quot;'}[c])); }
+
+  document.getElementById("saveScore").addEventListener("click", ()=>{
+    const name = (document.getElementById("playerName").value || "匿名").slice(0,16);
+    const arr = loadBoard();
+    arr.push({name, level: state.level, xp: state.xp, ts: Date.now()});
+    saveBoard(arr);
+    renderBoard();
+    alert("已提交（本地）。如需全网排行，后续可接入链上或云端聚合。");
+  });
+
+  document.getElementById("clearLocal").addEventListener("click", ()=>{
+    if(confirm("确认清空本地排行榜吗？")){ localStorage.removeItem(BOARD_KEY); renderBoard(); }
+  });
+
+  renderBoard();
+
+  // ============== 链上交互：钱包连接、切换网络、买种子（burn ODOG） ==============
+  const connectBtn = document.getElementById("connectBtn");
+  const buyBtn = document.getElementById("buyBtn");
+  let walletConnected = false;
+  let provider = null;
+  let signer = null;
+
+  async function ensureProvider(){
+    if(window.ethereum == null){
+      alert("未检测到 window.ethereum（例如 MetaMask）。请先安装 MetaMask / OKX Wallet 并刷新页面。");
+      throw new Error("No wallet");
+    }
+    // 尝试切换网络到 X Layer
+    try{
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params:[{chainId: XLAYER_CHAIN_ID_HEX}]});
+    }catch(e){
+      // 4902: 未添加该链，尝试添加
+      if(e.code === 4902 || /Unrecognized chain/.test(String(e.message))){
+        try{
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: XLAYER_CHAIN_ID_HEX,
+              chainName: "X Layer",
+              nativeCurrency: {name:"OKB", symbol:"OKB", decimals:18},
+              rpcUrls: [XLAYER_RPC],
+              blockExplorerUrls: ["https://www.oklink.com/xlayer","https://web3.okx.com/explorer"]
+            }]
+          });
+          // 再次切换
+          await window.ethereum.request({ method: 'wallet_switchEthereumChain', params:[{chainId: XLAYER_CHAIN_ID_HEX}]});
+        }catch(err2){
+          console.error("添加链失败", err2);
+          alert("请手动在钱包中添加 X Layer Chain（RPC: "+XLAYER_RPC+"）。错误信息: " + (err2.message||err2));
+          throw err2;
+        }
+      } else {
+        console.warn("切换链错误", e);
+      }
+    }
+    // 连接 provider
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    walletConnected = true;
+    connectBtn.innerText = "已连接";
+    connectBtn.disabled = true;
+  }
+
+  connectBtn.addEventListener("click", async ()=>{
+    try{
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      await ensureProvider();
+      alert("钱包已连接并切换到 X Layer（如成功）。");
+    }catch(e){
+      console.error(e);
+      alert("连接失败: " + (e.message||e));
+    }
+  });
+
+  // 购买种子函数：会调用 ERC20.transfer(burn, amount)
+  buyBtn.addEventListener("click", async ()=>{
+    const priceText = (document.getElementById("seedPrice").value || "1").trim();
+    const price = Number(priceText);
+    if(isNaN(price) || price <= 0){ alert("请填写有效的种子价格（ODOG）。"); return; }
+    if(!walletConnected){
+      try{ await ensureProvider(); }catch(e){ return; }
+    }
+    // 连接到合约
+    const contract = new ethers.Contract(ODOG_CONTRACT, ERC20_ABI, signer);
+    let decimals = 18;
+    try{ decimals = await contract.decimals(); }catch(e){ console.warn("读取 decimals 失败，使用 18 作为默认"); }
+    // 我们默认一次买 1 粒（你可以改成 qty）
+    const qty = 1;
+    const amount = ethers.parseUnits((price * qty).toString(), decimals);
+    // 发送 transfer(tx) 到 burn 地址
+    if(!confirm(`将发送 ${price*qty} ODOG（链上）到销毁地址以购买 ${qty} 粒种子。确认继续？（请先确保钱包已切换到 X Layer）`)) return;
+    try{
+      buyBtn.disabled = true;
+      buyBtn.innerText = "等待签名/发送...";
+      const txResp = await contract.transfer(BURN_ADDRESS, amount);
+      buyBtn.innerText = "已发送，等待链上确认...";
+      // 等待确认
+      await txResp.wait();
+      // 成功：给玩家种子并记录已烧数量（我们把 burnt 记录到本地统计）
+      state.seeds += qty;
+      // burnedTotal 增加显示（保存在本地）
+      const burnedDecimal = Number(price * qty); // 仅用于前端显示（精确度受 decimals 影响）
+      state.burnedTotal = (state.burnedTotal || 0) + burnedDecimal;
+      saveState();
+      refreshStats();
+      alert("购买成功：已获得 " + qty + " 粒种子（请查看种子数量）。链上 TX Hash: " + txResp.hash);
+    }catch(e){
+      console.error(e);
+      alert("交易失败或被拒绝: " + (e && e.message ? e.message : e));
+    }finally{
+      buyBtn.disabled = false;
+      buyBtn.innerText = "买 1 粒";
+    }
+  });
+
+  // 自动保存 periodically
+  setInterval(()=>saveState(), 5000);
+  </script>
+</body>
+</html>
