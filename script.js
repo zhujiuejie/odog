@@ -24,6 +24,7 @@ function init() {
     connectBtn.onclick = async () => {
         if (typeof window.ethereum !== 'undefined') {
             try {
+                // 兼容 OKX Web3 和 xLayer
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 await provider.send('eth_requestAccounts', []);
                 signer = provider.getSigner();
@@ -37,7 +38,7 @@ function init() {
                 status.textContent = '连接失败: ' + err.message;
             }
         } else {
-            status.textContent = '安装MetaMask!';
+            status.textContent = '安装钱包!';
         }
     };
 
