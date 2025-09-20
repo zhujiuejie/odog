@@ -24,21 +24,27 @@ function init() {
     connectBtn.onclick = async () => {
         if (typeof window.ethereum !== 'undefined') {
             try {
-                // 兼容 OKX Web3 和 xLayer
+                // 兼容 OKX Web3 和 X Layer
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 await provider.send('eth_requestAccounts', []);
                 signer = provider.getSigner();
                 contract = new ethers.Contract(ODOG_ADDRESS, ABI, signer);
                 const address = await signer.getAddress();
+                const network = await provider.getNetwork();
+                const chainId = network.chainId;
+                if (chainId !== 196) {
+                    status.textContent = `请切换到 X Layer 主网 (Chain ID: 196)！当前: ${chainId}`;
+                    return;
+                }
                 status.textContent = `连接成功: ${address.slice(0,6)}...${address.slice(-4)}`;
                 connectBtn.disabled = true;
                 updateBalance();
                 drawFarm();
             } catch (err) {
-                status.textContent = '连接失败: ' + err.message;
+                status.textContent = '连接失败: ' + err.message + ' (检查 Chain ID 196)';
             }
         } else {
-            status.textContent = '安装钱包!';
+            status.textContent = '安装 OKX Web3 钱包!';
         }
     };
 
@@ -52,7 +58,7 @@ function init() {
             try {
                 status.textContent = '种植中（销毁ODOG）...';
                 const decimals = await contract.decimals();
-                const amount = ethers.utils.parseUnits('1', decimals);
+                const amount = ethers.utils.parseUnits('1', decimals); // 测试改 '0.1'
 
                 const tx = await contract.transfer(DEAD_ADDRESS, amount);
                 await tx.wait();
