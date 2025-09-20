@@ -1,21 +1,21 @@
-
- 
-<头>
+<!DOCTYPE html>
+<html lang="zh">
+<head>
     <meta charset="UTF-8">
     <title>🌾 ODOG像素农场销毁器</title>
-    <链接 关系="样式表" 链接="style.css">
-</头>
-<身体>
-    <div 类="容器">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
         <h1>🌾 ODOG像素农场销毁器</h1>
         <p>点击格子种作物，每种销毁1 ODOG！gas费小心。</p>
-        <按钮 id="连接">连接MetaMask</按钮>
-           
+        <button id="connect">连接MetaMask</button>
+        <canvas id="farmCanvas" width="320" height="240"></canvas>
         <p id="status">准备就绪...</p>
         <p>ODOG余额: <span id="balance">0</span></p>
         <p>已种（销毁）: <span id="crops">0</span></p>
     </div>
     <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
-    <脚本 源="script.js"></脚本>
-</身体>
+    <script src="script.js"></script>
+</body>
 </html>
