@@ -119,7 +119,7 @@
                     }
                 ],
                 "stateMutability": "view",
-                "type": "type"
+                "type": "function"  // 修正了这里的 "type" 为 "function"
             },
             {
                 "inputs": [],
@@ -227,6 +227,12 @@
                 return;
             }
 
+            // 添加上次一样的提示
+            const confirmMint = confirm("铸造 NFT 将消耗 100 ODOG，这些代币将被永久销毁到 DEAD_ADDRESS。确认继续吗？");
+            if (!confirmMint) {
+                return;
+            }
+
             try {
                 // 检查当前授权金额
                 const allowance = await odogContract.methods.allowance(accounts[0], contractAddress).call();
@@ -234,7 +240,8 @@
                 if (web3.utils.toBN(allowance).lt(web3.utils.toBN(requiredAmount))) {
                     // 授权 100 ODOG
                     await odogContract.methods.approve(contractAddress, requiredAmount).send({ from: accounts[0] });
-                    alert("授权成功，请再次点击 Mint NFT！");
+                    alert("授权成功，请再次点击 Mint NFT 完成铸造！");
+                    return;  // 授权后停止，等待用户再次点击
                 }
 
                 // Mint NFT
