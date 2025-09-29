@@ -4,202 +4,338 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Odog Message Wall</title>
-    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.15/babel.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+    <style>
+        /* 保留当前风格：深色主题，背景#15202b，文字白色，类似Twitter/X风格 */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #15202b;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        .description {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: #aab8c2;
+            line-height: 1.5;
+        }
+        .connect-btn, .mint-btn, .switch-chain-btn {
+            background-color: #1da1f2;
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+        .connect-btn:hover, .mint-btn:hover, .switch-chain-btn:hover {
+            background-color: #0d8bd9;
+        }
+        .connect-btn:disabled, .mint-btn:disabled, .switch-chain-btn:disabled {
+            background-color: #657786;
+            cursor: not-allowed;
+        }
+        #messageInput {
+            width: 80%;
+            max-width: 400px;
+            padding: 12px;
+            margin: 20px 0;
+            border: 1px solid #657786;
+            border-radius: 10px;
+            background-color: #1e293b;
+            color: #ffffff;
+            font-size: 1em;
+            resize: vertical;
+            min-height: 100px;
+        }
+        #messageInput::placeholder {
+            color: #657786;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #1da1f2;
+            color: #ffffff;
+        }
+        .error {
+            background-color: #e0245e;
+            color: #ffffff;
+        }
+        .info {
+            background-color: #657786;
+            color: #ffffff;
+        }
+        .nft-preview {
+            margin-top: 30px;
+            text-align: left;
+        }
+        .nft-image {
+            width: 300px;
+            height: 300px;
+            border: 1px solid #657786;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        footer {
+            margin-top: 40px;
+            color: #657786;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
-    <div id="root"></div>
-    <script type="text/babel">
-        const { ethers } = window.ethers;
-        const contractAddress = "YOUR_CONTRACT_ADDRESS"; // 请替换为你的 OdogMessageWall 合约地址
-        const odogTokenAddress = "0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8";
-        const contractABI = [
-            {"constant":false,"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},
-            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","type":"event"},
-            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","type":"event"},
-            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"},
-            {"constant":false,"inputs":[],"name":"ODOG_TOKEN","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getMessage","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},
-            {"constant":false,"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},
-            {"constant":false,"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},
-            {"constant":false,"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"string","name":"message","type":"string"}],"name":"writeMessage","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}
+<body>
+    <div class="container">
+        <h1>Odog Message Wall</h1>
+        <p class="description">
+            欢迎来到Odog消息墙！在这里，你可以用100 ODOG代币铸造一个独一无二的NFT，每张NFT都会嵌入你的自定义消息（支持中文）。<br>
+            连接钱包，输入你的消息，然后点击铸造。铸造后，你可以查看NFT预览和tokenId。
+        </p>
+        
+        <button id="connectBtn" class="connect-btn">连接钱包</button>
+        <button id="switchChainBtn" class="switch-chain-btn" style="display: none;">切换到 xLayer</button>
+        <div id="mintSection" style="display: none;">
+            <textarea id="messageInput" placeholder="输入你的消息（支持中文，最好不超过50个字符以确保显示完整）"></textarea>
+            <br>
+            <button id="approveBtn" class="connect-btn">授权ODOG (100)</button>
+            <button id="mintBtn" class="mint-btn">铸造NFT</button>
+        </div>
+        
+        <div id="status"></div>
+        
+        <div id="previewSection" style="display: none;" class="nft-preview">
+            <h2>铸造成功！</h2>
+            <p>Token ID: <span id="tokenId"></span></p>
+            <img id="nftImage" class="nft-image" alt="NFT预览">
+            <p>消息: <span id="mintedMessage"></span></p>
+        </div>
+    </div>
+    
+    <footer>
+        合约地址: <a href="https://www.oklink.com/xlayer/address/0x07da5687C09Abb032597C37F5D91CB61D4db26AF" target="_blank" style="color: #1da1f2;">0x07da5687C09Abb032597C37F5D91CB61D4db26AF</a><br>
+        ODOG代币地址: <a href="https://www.oklink.com/xlayer/address/0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8" target="_blank" style="color: #1da1f2;">0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8</a>
+    </footer>
+
+    <script>
+        // 配置 - xLayer 主网 (Chain ID 196)
+        const CHAIN_ID = 196;
+        const CHAIN_NAME = 'xLayer Mainnet';
+        const RPC_URL = 'https://l2-rpc.xlayer.xyz'; // 或 'https://rpc.ankr.com/xlayer'
+        const BLOCK_EXPLORER = 'https://www.oklink.com/xlayer';
+        const CONTRACT_ADDRESS = '0x07da5687C09Abb032597C37F5D91CB61D4db26AF';
+        const ODOG_TOKEN_ADDRESS = '0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8';
+        const TOKEN_AMOUNT = ethers.parseUnits('100', 18); // 100 ODOG
+
+        // ABI (简化版，只包含必要函数)
+        const CONTRACT_ABI = [
+            'function writeMessage(string calldata message) external',
+            'function totalSupply() external view returns (uint256)',
+            'function tokenURI(uint256 tokenId) external view returns (string)',
+            'function getMessage(uint256 tokenId) external view returns (string)'
         ];
-        const odogTokenABI = [
-            {"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},
-            {"constant":false,"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}
+
+        const ODOG_ABI = [
+            'function approve(address spender, uint256 amount) external returns (bool)',
+            'function allowance(address owner, address spender) external view returns (uint256)'
         ];
 
-        function App() {
-            const [account, setAccount] = React.useState(null);
-            const [message, setMessage] = React.useState("");
-            const [totalSupply, setTotalSupply] = React.useState(0);
-            const [previewTokenId, setPreviewTokenId] = React.useState("");
-            const [nftPreview, setNftPreview] = React.useState(null);
-            const [error, setError] = React.useState("");
-            const [loading, setLoading] = React.useState(false);
+        let provider, signer, contract, odogContract, userAddress;
 
-            const connectWallet = async () => {
-                if (window.ethereum) {
-                    try {
-                        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-                        setAccount(accounts[0]);
-                        await fetchTotalSupply();
-                    } catch (err) {
-                        setError("连接钱包失败: " + err.message);
-                    }
-                } else {
-                    setError("请安装 MetaMask");
-                }
-            };
-
-            const fetchTotalSupply = async () => {
-                try {
-                    const provider = new ethers.BrowserProvider(window.ethereum);
-                    const contract = new ethers.Contract(contractAddress, contractABI, provider);
-                    const supply = await contract.totalSupply();
-                    setTotalSupply(supply.toString());
-                } catch (err) {
-                    setError("获取总供应量失败: " + err.message);
-                }
-            };
-
-            const mintNFT = async () => {
-                if (!account) {
-                    setError("请先连接钱包");
-                    return;
-                }
-                if (!message) {
-                    setError("请输入留言");
-                    return;
-                }
-                setLoading(true);
-                setError("");
-                try {
-                    const provider = new ethers.BrowserProvider(window.ethereum);
-                    const signer = await provider.getSigner();
-                    const contract = new ethers.Contract(contractAddress, contractABI, signer);
-                    const odogContract = new ethers.Contract(odogTokenAddress, odogTokenABI, signer);
-
-                    // 授权 ODOG 代币
-                    const amount = ethers.parseUnits("1", 18);
-                    const approveTx = await odogContract.approve(contractAddress, amount);
-                    await approveTx.wait();
-
-                    // 铸造 NFT
-                    const tx = await contract.writeMessage(message);
-                    await tx.wait();
-                    setMessage("");
-                    await fetchTotalSupply();
-                    alert("NFT 铸造成功！");
-                } catch (err) {
-                    setError("铸造失败: " + err.message);
-                } finally {
-                    setLoading(false);
-                }
-            };
-
-            const previewNFT = async () => {
-                if (!previewTokenId) {
-                    setError("请输入 Token ID");
-                    return;
-                }
-                try {
-                    const provider = new ethers.BrowserProvider(window.ethereum);
-                    const contract = new ethers.Contract(contractAddress, contractABI, provider);
-                    const uri = await contract.tokenURI(previewTokenId);
-                    setNftPreview(uri);
-                    setError("");
-                } catch (err) {
-                    setError("获取 NFT 失败: " + err.message);
-                }
-            };
-
-            return (
-                <div className="max-w-2xl mx-auto p-6">
-                    <h1 className="text-4xl font-bold text-center mb-6">Odog Message Wall</h1>
-                    <p className="text-center mb-4">用 1 ODOG 铸造你的留言 NFT，永久上链！</p>
-
-                    <div className="mb-6">
-                        <button
-                            onClick={connectWallet}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                        >
-                            {account ? `已连接: ${account.slice(0, 6)}...${account.slice(-4)}` : "连接钱包"}
-                        </button>
-                    </div>
-
-                    <div className="mb-6">
-                        <h2 className="text-2xl font-semibold mb-2">铸造留言 NFT</h2>
-                        <input
-                            type="text"
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            placeholder="输入你的留言"
-                            className="w-full p-2 mb-2 bg-gray-800 text-white rounded"
-                        />
-                        <button
-                            onClick={mintNFT}
-                            disabled={loading}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
-                        >
-                            {loading ? "铸造中..." : "铸造 NFT (1 ODOG)"}
-                        </button>
-                    </div>
-
-                    <div className="mb-6">
-                        <h2 className="text-2xl font-semibold mb-2">你的 NFT 预览</h2>
-                        <input
-                            type="text"
-                            value={previewTokenId}
-                            onChange={(e) => setPreviewTokenId(e.target.value)}
-                            placeholder="输入 Token ID 查看 NFT"
-                            className="w-full p-2 mb-2 bg-gray-800 text-white rounded"
-                        />
-                        <button
-                            onClick={previewNFT}
-                            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
-                        >
-                            查看
-                        </button>
-                        {nftPreview && (
-                            <div className="mt-4">
-                                <img src={nftPreview} alt="NFT Preview" className="w-full rounded" />
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="mb-6">
-                        <h2 className="text-2xl font-semibold mb-2">总供应</h2>
-                        <p className="text-lg">{totalSupply}</p>
-                        <button
-                            onClick={fetchTotalSupply}
-                            className="mt-2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                        >
-                            刷新
-                        </button>
-                    </div>
-
-                    {error && <p className="text-red-500 text-center">{error}</p>}
-                </div>
-            );
+        // 更新状态
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
         }
 
-        ReactDOM.render(<App />, document.getElementById("root"));
+        // 切换到 xLayer 链
+        async function switchToXLayer() {
+            if (!window.ethereum) {
+                updateStatus('请安装MetaMask钱包！', 'error');
+                return;
+            }
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0xc4' }], // 196 in hex
+                });
+                updateStatus('已切换到 xLayer 主网！', 'success');
+                document.getElementById('switchChainBtn').style.display = 'none';
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    // 链不存在，添加链
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0xc4',
+                            chainName: CHAIN_NAME,
+                            rpcUrls: [RPC_URL],
+                            blockExplorerUrls: [BLOCK_EXPLORER],
+                            nativeCurrency: {
+                                name: 'Ether',
+                                symbol: 'ETH',
+                                decimals: 18
+                            }
+                        }],
+                    });
+                    updateStatus('xLayer 已添加到钱包！', 'success');
+                } else {
+                    updateStatus('切换链失败: ' + switchError.message, 'error');
+                }
+            }
+        }
+
+        // 连接钱包并检查链
+        async function connectWallet() {
+            if (!window.ethereum) {
+                updateStatus('请安装MetaMask钱包！', 'error');
+                return;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userAddress = accounts[0];
+                
+                // 检查当前链 ID
+                const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+                if (parseInt(currentChainId, 16) !== CHAIN_ID) {
+                    updateStatus('当前不在 xLayer 主网，请切换链！', 'error');
+                    document.getElementById('switchChainBtn').style.display = 'inline-block';
+                    return;
+                }
+
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                odogContract = new ethers.Contract(ODOG_TOKEN_ADDRESS, ODOG_ABI, signer);
+
+                updateStatus(`钱包连接成功: ${userAddress.slice(0,6)}...${userAddress.slice(-4)} | xLayer 主网`, 'success');
+                document.getElementById('connectBtn').style.display = 'none';
+                document.getElementById('mintSection').style.display = 'block';
+
+                // 检查授权
+                checkApproval();
+            } catch (error) {
+                updateStatus('连接钱包失败: ' + error.message, 'error');
+            }
+        }
+
+        // 检查授权
+        async function checkApproval() {
+            try {
+                const allowance = await odogContract.allowance(userAddress, CONTRACT_ADDRESS);
+                if (allowance < TOKEN_AMOUNT) {
+                    updateStatus('请先授权合约使用你的ODOG代币（100 ODOG）', 'info');
+                    document.getElementById('approveBtn').style.display = 'inline-block';
+                    document.getElementById('mintBtn').disabled = true;
+                } else {
+                    updateStatus('授权已通过，可以铸造！', 'success');
+                    document.getElementById('approveBtn').style.display = 'none';
+                    document.getElementById('mintBtn').disabled = false;
+                }
+            } catch (error) {
+                updateStatus('检查授权失败: ' + error.message, 'error');
+            }
+        }
+
+        // 授权
+        async function approve() {
+            try {
+                updateStatus('授权中...', 'info');
+                const tx = await odogContract.approve(CONTRACT_ADDRESS, TOKEN_AMOUNT);
+                await tx.wait();
+                updateStatus('授权成功！', 'success');
+                checkApproval();
+            } catch (error) {
+                updateStatus('授权失败: ' + error.message, 'error');
+            }
+        }
+
+        // 铸造NFT
+        async function mintNFT() {
+            const message = document.getElementById('messageInput').value.trim();
+            if (!message) {
+                updateStatus('消息不能为空！', 'error');
+                return;
+            }
+            if (message.length > 100) { // 粗略限制，防止Gas过高
+                updateStatus('消息太长，请缩短（建议50个字符以内）', 'error');
+                return;
+            }
+
+            try {
+                updateStatus('铸造中...', 'info');
+                const tx = await contract.writeMessage(message);
+                const receipt = await tx.wait();
+                // 从事件日志获取 tokenId (Transfer event)
+                const event = receipt.logs.find(log => {
+                    try {
+                        const parsed = contract.interface.parseLog(log);
+                        return parsed?.name === 'Transfer';
+                    } catch {
+                        return false;
+                    }
+                });
+                const tokenId = event ? event.args.tokenId.toString() : '未知';
+
+                updateStatus('铸造成功！Token ID: ' + tokenId, 'success');
+                document.getElementById('tokenId').textContent = tokenId;
+                document.getElementById('mintedMessage').textContent = message;
+                document.getElementById('previewSection').style.display = 'block';
+
+                // 显示NFT预览
+                await showNFTPreview(tokenId);
+
+                // 重置输入
+                document.getElementById('messageInput').value = '';
+            } catch (error) {
+                updateStatus('铸造失败: ' + error.message + '（检查ODOG余额和授权）', 'error');
+            }
+        }
+
+        // 显示NFT预览
+        async function showNFTPreview(tokenId) {
+            try {
+                const uri = await contract.tokenURI(tokenId);
+                // uri是data:application/json;base64,... 格式，直接作为img src（浏览器会自动解析为SVG）
+                document.getElementById('nftImage').src = uri;
+            } catch (error) {
+                updateStatus('加载预览失败: ' + error.message, 'error');
+                document.getElementById('nftImage').alt = '预览加载失败';
+            }
+        }
+
+        // 事件监听
+        document.getElementById('connectBtn').addEventListener('click', connectWallet);
+        document.getElementById('switchChainBtn').addEventListener('click', switchToXLayer);
+        document.getElementById('approveBtn').addEventListener('click', approve);
+        document.getElementById('mintBtn').addEventListener('click', mintNFT);
+
+        // 监听链变化
+        if (window.ethereum) {
+            window.ethereum.on('chainChanged', () => window.location.reload());
+            window.ethereum.on('accountsChanged', () => window.location.reload());
+        }
     </script>
 </body>
 </html>
