@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Odog Message Wall - 留言墙NFT</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" defer></script> <!-- 回滚CDN -->
     <style>
         body {
             background-color: #15202b;
@@ -20,7 +21,7 @@
             margin-bottom: 20px;
         }
         .header h1 {
-            color: #1da1f2; /* 蓝色标题 */
+            color: #1da1f2;
         }
         .connect-btn {
             background-color: #1da1f2;
@@ -145,5 +146,151 @@
     </div>
 
     <script>
-        // 嵌入ethers.js 5.7源码 (minified)
-        (function(){var e={962:function(e,t,r){var n,i;!function(o,s){if(o){var a=function(){var e=o.URL.createObjectURL(new Blob(["(",function(){}.toString(),")()"],{type:"application/javascript"}));return o.URL.revokeObjectURL(e),e}();a||(a=function(){throw new Error("This browser does not support Object URLs or Blob objects")})}else a=!1;e.exports=function(e,t,r){var n,i;if(void 0===r&&(r={}),a)n=new o.Worker(a);else{if(!(i=new o.Worker(e,t)))throw new Error("Failed to create Web Worker. Ensure the Worker URL is valid and that the browser or Node.js version supports Workers.");n=i}return r.terminateWorkerOnClose!==!1&&o.addEventListener("beforeunload",(function(){n.terminate()})),n.postMessage=wrapper(n.postMessage),n}}(void 0!==r.g?r.g:"undefined"!=typeof self?self:this).register("workers",(function(e,t){return n={},i={exports:n},e(i,i.exports),i.exports;var n,i}))},717:function(e,t,r){var n,i;!function(o,s){if(o){var a=function(){var e=o.URL.createObjectURL(new Blob(["(",function(){}.toString(),")()"],{type:"application/javascript"}));return o.URL.revokeObjectURL(e),e}();a||(a=function(){throw new Error("This browser does not support Object URLs or Blob objects")})}else a=!1;e.exports=function(e,t,r){var n,i;if(void 0===r&&(r={}),a)n=new o.Worker(a);else{if(!(i=new o.Worker(e,t)))throw new Error("Failed to create Web Worker. Ensure the Worker URL is valid and that the browser or Node.js version supports Workers.");n=i}return r.terminateWorkerOnClose!==!1&&o.addEventListener("beforeunload",(function(){n.terminate()})),n.postMessage=wrapper(n.postMessage),n}}(void 0!==r.g?r.g:"undefined"!=typeof self?self:this).register("worker_threads",(function(e,t){return n={},i={exports:n},e(i,i.exports),i.exports;var n,i}))},737:function(e){e.exports=function(e,t){if(e&&e.__esModule)return e;if(null===e||"object"!=typeof e&&"function"!=typeof e)return{default:e};var r=n(t);if(r&&r.has(e))return r.get(e);var i={},o=Object.defineProperty&&Object.getOwnPropertyDescriptor;for(var s in e)if("default"!==s&&Object.prototype.hasOwnProperty.call(e,s)){var a=o?Object.getOwnPropertyDescriptor(e,s):null;a&&(a.get||a.set)?Object.defineProperty(i,s,a):i[s]=e[s]}return i.default=e,r&&r.set(e,i),i},e.exports.__esModule=!0,e.exports.default=e.exports;function n(e){if("function"!=typeof WeakMap)return null;var t=new WeakMap,r=new WeakMap;return(n=function(e){return e?r:t})(e)}},960:function(e,t,r){e.exports=r(962)},849:function(e,t,r){e.exports=r(717)}},t={};function r(n){var i=t[n];if(void 0!==i)return i.exports;var o=t[n]={exports:{}};return e[n](o,o.exports,r),o.exports}(function(){function e(e,t){(null==t||t>e.length)&&(t=e.length);for(var r=0,n=new Array(t);r<t;r++)n[r]=e[r];return n}e.prototype={constructor:e,reset:function(e){this._cursor=0,this._available=this._total=this._buffer.byteLength,e&&this._update(e)},_update:function(e){this._buffer=new Uint8Array(e),this._cursor=0,this._available=this._buffer.byteLength},push:function(e){var t=this._buffer,r=this._cursor,n=this._available;if(0===n)return!1;if(e.byteLength>n){var i=new Uint8Array(t.buffer.slice(r));this._buffer=new Uint8Array(i.length+e.byteLength),this._buffer.set(i),this._buffer.set(new Uint8Array(e),i.length),this._cursor=0,this._available=this._buffer.byteLength}else this._buffer.set(new Uint8Array(e),r),this._cursor+=e.byteLength,this._available-=e.byteLength;return this._available>0},unshift:function(e){var t=this._buffer,r=this._cursor,n=this._available;if(0===n)return!1;if(e.byteLength>n){var i=new Uint8Array(e.byteLength+t.buffer.slice(0,r+n));this._buffer=new Uint8Array(i.length),this._buffer.set(new Uint8Array(e),0),this._buffer.set(i,n),this._cursor=e.byteLength,this._available=this._buffer.byteLength-e.byteLength}else{var o=r-e.byteLength;o<0&&(o=0);var s=t.subarray(o,r);this._buffer.copyWithin(e.byteLength,0,r),this._buffer.set(new Uint8Array(e),0),this._cursor=e.byteLength+s.length,this._available-=e.byteLength}return this._available>0},pull:function(){var t=this._buffer,r=this._cursor,n=this._available,i=t.subarray(0,r);return this._cursor=0,this._available+=r,i.byteLength>0?i:(this._buffer=new Uint8Array(0),null)},peek:function(e,t){void 0===e&&(e=0),void 0===t&&(t=this._available);var r=this._buffer,n=this._cursor;return r.subarray(n+e,n+t)},skip:function(e){var t=this._cursor+e;t<=this._buffer.byteLength?(this._cursor=t,this._available-=e):(this._cursor=this._buffer.byteLength,this._available=0)},find:function(e,t){void 0===t&&(t=this._available);for(var r=this._buffer,n=this._cursor,i=0;i<t&&n+i<r.byteLength;i++)if(r[n+i]===e)return i;return-1},findAll:function(e,t){void 0===t&&(t=this._available);for(var r=this._buffer,n=this._cursor,i=[],o=0;o<t&&n+o<r.byteLength;o++)r[n+o]===e&&i.push(o);return i},copy:function(e,t,r){void 0===t&&(t=0),void 0===r&&(r=this._available);var n=this._buffer,i=this._cursor,o=n.subarray(i+t,i+r);return e.set(o),o.length}}}).register("data",function(e,t){t.DataView=e.exports=function(){function e(e){this._buffer=e instanceof ArrayBuffer?new Uint8Array(e):e,this._cursor=0,this._available=this._buffer.byteLength}e.prototype={constructor:e,reset:function(e){this._cursor=0,this._available=this._buffer.byteLength,e&&this._update(e)},_update:function(e){this._buffer=e instanceof ArrayBuffer?new Uint8Array(e):e,this._cursor=0,this._available=this._buffer.byteLength},getAvailable:function(){return this._available},getTotal:function(){return this._buffer.byteLength},getCursor:function(){return this._cursor},push:function(e){var t=this._buffer,r=this._cursor,n=this._available;if(0===n)return!1;if(e instanceof ArrayBuffer&&(e=new Uint8Array(e)),e.byteLength>n){var i=new Uint8Array(t.length+e.byteLength);i.set(t.subarray(0,r)),i.set(e,r),i.set(t.subarray(r),r+e.byteLength),this._buffer=i,this._cursor=r,this._available=this._buffer.byteLength-r}else this._buffer.set(e,r),this._cursor+=e.byteLength,this._available-=e.byteLength;return this._available>0},unshift:function(e){var t=this._buffer,r=this._cursor,n=this._available;if(0===n)return!1;if(e instanceof ArrayBuffer&&(e=new Uint8Array(e)),e.byteLength>n){var i=new Uint8Array(e.byteLength+t.byteLength);i.set(e),i.set(t),this._buffer=i,this._cursor=e.byteLength+r,this._available=this._buffer.byteLength-this._cursor}else{var o=r-e.byteLength;o<0&&(o=0);var s=t.subarray(o,r);this._buffer.copyWithin(e.byteLength,0,r),this._buffer.set(e,0),this._cursor=e.byteLength+s.length,this._available-=e.byteLength}return this._available>0},pull:function(e){var t=this._buffer,r=this._cursor,n=this._available,i=t.subarray(0,r);return this._cursor=0,this._available+=r,i.byteLength>0&&e&&e(i),i.byteLength>0?i:(this._buffer=new Uint8Array(0),null)},peek:function(e,t){void 0===e&&(e=0),void 0===t&&(t=this._available);var r=this._buffer,n=this._cursor;return r.subarray(n+e,n+t)},skip:function(e){var t=this._cursor+e;t<=this._buffer.byteLength?(this._cursor=t,this._available-=e):(this._cursor=this._buffer.byteLength,this._available=0)},find:function(e,t){void 0===t&&(t=this._available);for(var r=this._buffer,n=this._cursor,i=0;i<t&&n+i<r.byteLength;i++)if(r[n+i]===e)return i;return-1},findAll:function(e,t){void 0===t&&(t=this._available);for(var r=this._buffer,n=this._cursor,i=[],o=0;o<t&&n+o<r.byteLength;o++)r[n+o]===e&&i.push(o);return i},copy:function(e,t,r){void 0===t&&(t=0),void 0===r&&(r=this._available);var n=this._buffer,i=this._cursor,o=n.subarray(i+t,i+r);return e.set(o),o.length}}},e.exports.DataView=e.exports}),(function(){var e;e={exports:{}},function(){var t,r,n,i,o,s,a,u,c,l,h,f,d,p,m,y,g,v,w,b,E,A,k,S,T,C,x,L,R,M,I,P,U,D,O,N,F,B,j,q,G,H,W,z,V,K,Y,X,Q,J,Z,$,ee,te,re,ne,ie,oe,se,ae,ue,ce,le,he,fe,de,pe,me,ye,ge,ve,we,be,Ee,Ae,ke,Se,Te,Ce,xe,Le,Re,Me,Ie,Pe,Ue,De,Oe,Ne,Fe,Be,je,qe,Ge,He,We,ze,Ve,Ke,Ye,Xe,Qe,Je,Ze,$e,et,tt,rt,nt,it,ot,st,at,ut,ct,lt,ht,ft,dt,pt,mt,yt,gt,vt,wt,bt,Et,At,kt,St,Tt,Ct,xt,Lt,Rt,Mt,It,Pt,Ut,Dt,Ot,Nt,Ft,Bt,jt,qt,Gt,Ht,Wt,zt,Vt,Kt,Yt,Xt,Qt,Jt,Zt,$t,er,tr,rr,nr,ir,or,sr,ar,ur,cr,lr,hr,fr,dr,pr,mr,yr,gr,vr,wr,br,Er,Ar,kr,Sr,Tr,Cr,xr,Lr,Rr,Mr,Ir,Pr,Ur,Dr,Or,Nr,Fr,Br,jr,qr,Gr,Hr,Wr,zr,Vr,Kr,Yr,Xr,Qr,Jr,Zr,$r,en,tn,rn,nn,on,sn,an,un,cn,ln,hn,fn,dn,pn,mn,yn,gn,vn,wn,bn,En,An,kn,Sn,Tn,Cn,xn,Ln,Rn,Mn,In,Pn,Un,Dn,On,Nn,Fn,Bn,jn,qn,Gn,Hn,Wn,zn,Vn,Kn,Yn,Xn,Qn,Jn,Zn,$n,ei,ti,ri,ni,ii,oi,si,ai,ui,ci,li,hi,fi,di,pi,mi,yi,gi,vi,wi,bi,Ei,Ai,ki,Si,Ti,Ci,xi,Li,Ri,Mi,Ii,Pi,Ui,Di,Oi,Ni,Fi,Bi,ji,qi,Gi,Hi,Wi,zi,Vi,Ki,Yi,Xi,Qi,Ji,Zi,$i,eo,to,ro,no,io,oo,so,ao,uo,co,lo,ho,fo,po,mo,yo,go,vo,wo,bo,Eo,Ao,ko,So,To,Co,xo,Lo,Ro,Mo,Io,Po,Uo,Do,Oo,No,Fo,Bo,jo,qo,Go,Ho,Wo,zo,Vo,Ko,Yo,Xo,Qo,Jo,Zo,$o,es,ts,rs,ns,is,os,ss,as,us,cs,ls,hs,fs,ds,ps,ms,ys,gs,vs,ws,bs,Es,As,ks,Ss,Ts,Cs,xs,Ls,Rs,Ms,Is,Ps,Us,Ds,Os,Ns,Fs,Bs,js,qs,Gs,Hs,Ws,zs,Vs,Ks,Ys,Xs,Qs,Js,Zs,$s,ea,ta,ra,na,ia,oa,sa,aa,ua,ca,la,ha,fa,da,pa,ma,ya,ga,va,wa,ba,Ea,Aa,ka,Sa,Ta,Ca,xa,La,Ra,Ma,Ia,Pa,Ua,Da,Oa,Na,Fa,Ba,ja,qa,Ga,Ha,Wa,za,Va,Ka,Ya,Xa,Qa,Ja,Za,$a,el,tl,rl,nl,il,ol,sl,al,ul,cl,hl,fl,dl,pl,ml,yl,gl,vl,wl,bl,El,Al,kl,Sl,Tl,Cl,xl,Ll,Rl,Ml,Il,Pl,Ul,Dl,Ol,Nl,Fl,Bl,jl,ql,Gl,Hl,Wl,zl,Vl,Kl,Yl,Xl,Ql,Jl,Zl,$l,eh,th,rh,nh,ih,oh,sh,ah,uh,ch,lh,hh,fh,dh,ph,mh,yh,gh,vh,wh,bh,Eh,Ah,kh,Sh,Th,Ch,xh,Lh,Rh,Mh,Ih,Ph,Uh,Dh,Oh,Nh,Fh,Bh,jh,qh,Gh,Hh,Wh,zh,Vh,Kh,Yh,Xh,Qh,Jh,Zh,$h,ep,tp,rp,np,ip,op,sp,ap,up,cp,lp,hp,fp,dp,pp,mp,yp,gp,vp,wp,bp,Ep,Ap,kp,Sp,Tp,Cp,xp,Lp,Rp,Mp,Ip,Pp,Up,Dp,Op,Np,Fp,Bp,jp,qp,Gp,Hp,Wp,zp,Vp,Kp,Yp,Xp,Qp,Jp,Zp,$p,ev,tv,rv,nv,iv,ov,sv,av,uv,cv,lv,hv,fv,dv,pv,mv,yv,gv,vv,wv,bv,Ev,Av,kv,Sv,Tv,Cv,xv,Lv,Rv,Mv,Iv,Pv,Uv,Dv,Ov,Nv,Fv,Bv,jv,qv,Gv,Hv,Wv,zv,Vv,Kv,Yv,Xv,Qv,Jv,Zv,$v,ew,tw,rw,nw,iw,ow,sw,aw,uw,cw,lw,hw,fw,dw,pw,mw,yw,gw,vw,ww,bw,Ew,Aw,kw,Sw,Tw,Cw,xw,Lw,Rw,Mw,Iw,Pw,Uw,Dw,Ow,Nw,Fw,Bw,jw,qw,Gw,Hw,Ww,zw,Vw,Kw,Yw,Xw,Qw,Jw,Zw,$w,ex,tx,rx,nx,ix,ox,sx,ax,ux,cx,lx,hx,fx,dx,px,mx,yx,gx,vx,wx,bx,Ex,Ax,kx,Sx,Tx,Cx,xx,Lx,Rx,Mx,Ix,Px,Ux,Dx,Ox,Nx,Fx,Bx,jx,qx,Gx,Hx,Wx,zx,Vx,Kx,Yx,Xx,Qx,Jx,Zx,$x,ey,ty,ry,ny,iy,oy,sy,ay,uy,cy,ly,hy,fy,dy,py,my,yy,gy,vy,wy,by,Ey,Ay,ky,Sy,Ty,Cy,xy,Ly,Ry,My,Iy,Py,Uy,Dy,Oy,Ny,Fy,By,jy,qy,Gy,Hy,Wy,zy,Vy,Ky,Yy,Xy,Qy,Jy,Zy,$y,ez,tz,rz,nz,iz,oz,sz,az,uz,cz,lz,hz,fz,dz,pz,mz,yz,gz,vz,wz,bz,Ez,Az,kz,Sz,Tz,Cz,xz,Lz,Rz,Mz,Iz,Pz,Uz,Dz,Oz,Nz,Fz,Bz,jz,qz,Gz,Hz,Wz,zz,Vz,Kz,Yz,Xz,Qz,Jz,Zz,$z,eA,tA,rA,nA,iA,oA,sA,aA,uA,cA,lA,hA,fA,dA,pA,mA,yA,gA,vA,wA,bA,EA,AA,kA,SA,TA,CA,xA,LA,RA,MA,IA,PA,UA,DA,OA,NA,FA,BA,jA,qA,GA,HA,WA,zA,VA,KA,YA,XA,QA,JA,ZA,$A,eT,tT,rT,nT,iT,oT,sT,aT,uT,cT,lT,hT,fT,dT,pT,mT,yT,gT,vT,wT,bT,ET,AT,kT,ST,TT,CT,xT,LT,RT,MT,IT,PT,UT,DT,OT,NT,FT,BT,jT,qT,GT,HT,WT,zT,VT,KT,YT,XT,QT,JT,ZT,$T,e$,t$,r$,n$,i$,o$,s$,a$,u$,c$,l$,h$,f$,d$,p$,m$,y$,g$,v$,w$,b$,E$,A$,k$,S$,T$,C$,x$,L$,R$,M$,I$,P$,U$,D$,O$,N$,F$,B$,j$,q$,G$,H$,W$,z$,V$,K$,Y$,X$,Q$,J$,Z$,$$,eR,tR,rR,nR,iR,oR,sR,aR,uR,cR,lR,hR,fR,dR,pR,mR,yR,gR,vR,wR,bR,ER,AR,kR,SR,TR,CR,xR,LR,RR,MR,IR,PR,UR,DR,OR,NR,FR,BR,jR,qR,GR,HR,WR,zR,VR,KR,YR,XR,QR,JR,ZR,$R,eI,tI,rI,nI,iI,oI,sI,aI,uI,cI,lI,hI,fI,dI,pI,mI,yI,gI,vI,wI,bI,EI,AI,kI,SI,TI,CI,xI,LI,RI,MI,II,PI,UI,DI,OI,NI,FI,BI,jI,qI,GI,HI,WI,zI,VI,KI,YI,XI,QI,JI,ZI,$I,eo,to,ro,no,io,oo,so,ao,uo,co,lo,ho,fo,po,mo,yo,go,vo,wo,bo,Eo,Ao,ko,So,To,Co,xo,Lo,Ro,Mo,Io,Po,Uo,Do,Oo,No,Fo,Bo,jo,qo,Go,Ho,Wo,zo,Vo,Ko,Yo,Xo,Qo,Jo,Zo,$o,es,ts,rs,ns,is,os,ss,as,us,cs,ls,hs,fs,ds,ps,ms,ys,gs,vs,ws,bs,Es,As,ks,Ss,Ts,Cs,xs,Ls,Rs,Ms,Is,Ps,Us,Ds,Os,Ns,Fs,Bs,js,qs,Gs,Hs,Ws,zs,Vs,Ks,Ys,Xs,Qs,Js,Zs,$s,ea,ta,ra,na,ia,oa,sa,aa,ua,ca,la,ha,fa,da,pa,ma,ya,ga,va,wa,ba,Ea,Aa,ka,Sa,Ta,Ca,xa,La,Ra,Ma,Ia,Pa,Ua,Da,Oa,Na,Fa,Ba,ja,qa,Ga,Ha,Wa,za,Va,Ka,Ya,Xa,Qa,Ja,Za,$a,el,tl,rl,nl,il,ol,sl,al,ul,cl,hl,fl,dl,pl,ml,yl,gl,vl,wl,bl,El,Al,kl,Sl,Tl,Cl,xl,Ll,Rl,Ml,Il,Pl,Ul,Dl,Ol,Nl,Fl,Bl,jl,ql,Gl,Hl,Wl,zl,Vl,Kl,Yl,Xl,Ql,Jl,Zl,$l,eh,th,rh,nh,ih,oh,sh,ah,uh,ch,lh,hh,fh,dh,ph,mh,yh,gh,vh,wh,bh,Eh,Ah,kh,Sh,Th,Ch,xh,Lh,Rh,Mh,Ih,Ph,Uh,Dh,Oh,Nh,Fh,Bh,jh,qh,Gh,Hh,Wh,zh,Vh,Kh,Yh,Xh,Qh,Jh,Zh,$h,ep,tp,rp,np,ip,op,sp,ap,up,cp,lp,hp,fp,dp,pp,mp,yp,gp,vp,wp,bp,Ep,Ap,kp,Sp,Tp,Cp,xp,Lp,Rp,Mp,Ip,Pp,Up,Dp,Op,Np,Fp,Bp,jp,qp,Gp,Hp,Wp,zp,Vp,Kp,Yp,Xp,Qp,Jp,Zp,$p,ev,tv,rv,nv,iv,ov,sv,av,uv,cv,lv,hv,fv,dv,pv,mv,yv,gv,vv,wv,bv,Ev,Av,kv,Sv,Tv,Cv,xv,Lv,Rv,Mv,Iv,Pv,Uv,Dv,Ov,Nv,Fv,Bv,jv,qv,Gv,Hv,Wv,zv,Vv,Kv,Yv,Xv,Qv,Jv,Zv,$v,ew,tw,rw,nw,iw,ow,sw,aw,uw,cw,lw,hw,fw,dw,pw,mw,yw,gw,vw,ww,bw,Ew,Aw,kw,Sw,Tw,Cw,xw,Lw,Rw,Mw,Iw,Pw,Uw,Dw,Ow,Nw,Fw,Bw,jw,qw,Gw,Hw,Ww,zw,Vw,Kw,Yw,Xw,Qw,Jw,Zw,$w,ex,tx,rx,nx,ix,ox,sx,ax,ux,cx,lx,hx,fx,dx,px,mx,yx,gx,vx,wx,bx,Ex,Ax,kx,Sx,Tx,Cx,xx,Lx,Rx,Mx,Ix,Px,Ux,Dx,Ox,Nx,Fx,Bx,jx,qx,Gx,Hx,Wx,zx,Vx,Kx,Yx,Xx,Qx,Jx,Zx,$x,ey,ty,ry,ny,iy,oy,sy,ay,uy,cy,ly,hy,fy,dy,py,my,yy,gy,vy,wy,by,Ey,Ay,ky,Sy,Ty,Cy,xy,Ly,Ry,My,Iy,Py,Uy,Dy,Oy,Ny,Fy,By,jy,qy,Gy,Hy,Wy,zy,Vy,Ky,Yy,Xy,Qy,Jy,Zy,$y,ez,tz,rz,nz,iz,oz,sz,az,uz,cz,lz,hz,fz,dz,pz,mz,yz,gz,vz,wz,bz,Ez,Az,kz,Sz,Tz,Cz,xz,Lz,Rz,Mz,Iz,Pz,Uz,Dz,Oz,Nz,Fz,Bz,jz,qz,Gz,Hz,Wz,zz,Vz,Kz,Yz,Xz,Qz,Jz,Zz,$z,eA,tA,rA,nA,iA,oA,sA,aA,uA,cA,lA,hA,fA,dA,pA,mA,yA,gA,vA,wA,bA,EA,AA,kA,SA,TA,CA,xA,LA,RA,MA,IA,PA,UA,DA,OA,NA,FA,BA,jA,qA,GA,HA,WA,zA,VA,KA,YA,XA,QA,JA,ZA,$A,eT,tT,rT,nT,iT,oT,sT,aT,uT,cT,lT,hT,fT,dT,pT,mT,yT,gT,vT,wT,bT,ET,AT,kT,ST,TT,CT,xT,LT,RT,MT,IT,PT,UT,DT,OT,NT,FT,BT,jT,qT,GT,HT,WT,zT,VT,KT,YT,XT,QT,JT,ZT,$T,e$,t$,r$,n$,i$,o$,s$,a$,u$,c$,l$,h$,f$,d$,p$,m$,y$,g$,v$,w$,b$,E$,A$,k$,S$,T$,C$,x$,L$,R$,M$,I$,P$,U$,D$,O$,N$,F$,B$,j$,q$,G$,H$,W$,z$,V$,K$,Y$,X$,Q$,J$,Z$,$$,eR,tR,rR,nR,iR,oR,sR,aR,uR,cR,lR,hR,fR,dR,pR,mR,yR,gR,vR,wR,bR,ER,AR,kR,SR,TR,CR,xR,LR,RR,MR,IR,PR,UR,DR,OR,NR,FR,BR,jR,qR,GR,HR,WR,zR,VR,KR,YR,XR,QR,JR,ZR,$R,eI,tI,rI,nI,iI,oI,sI,aI,uI,cI,lI,hI,fI,dI,pI,mI,yI,gI,vI,wI,bI,EI,AI,kI,SI,TI,CI,xI,LI,RI,MI,II,PI,UI,DI,OI,NI,FI,BI,jI,qI,GI,HI,WI,zI,VI,KI,YI,XI,QI,JI,ZI,$I,eo,to,ro,no,io,oo,so,ao,uo,co,lo,ho,fo,po,mo,yo,go,vo,wo,bo,Eo,Ao,ko,So,To,Co,xo,Lo,Ro,Mo,Io,Po,Uo,Do,Oo,No,Fo,Bo,jo,qo,Go,Ho,Wo,zo,Vo,Ko,Yo,Xo,Qo,Jo,Zo,$o,es,ts,rs,ns,is,os,ss,as,us,cs,ls,hs,fs,ds,ps,ms,ys,gs,vs,ws,bs,Es,As,ks,Ss,Ts,Cs,xs,Ls,Rs,Ms,Is,Ps,Us,Ds,Os,Ns,Fs,Bs,js,qs,Gs,Hs,Ws,zs,Vs,Ks,Ys,Xs,Qs,Js,Zs,$s,ea,ta,ra,na,ia,oa,sa,aa,ua,ca,la,ha,fa,da,pa,ma,ya,ga,va,wa,ba,Ea,Aa,ka,Sa,Ta,Ca,xa,La,Ra,Ma,Ia,Pa,Ua,Da,Oa,Na,Fa,Ba,ja,qa,Ga,Ha,Wa,za,Va,Ka,Ya,Xa,Qa,Ja,Za,$a,el,tl,rl,nl,il,ol,sl,al,ul,cl,hl,fl,dl,pl,ml,yl,gl,vl,wl,bl,El,Al,kl,Sl,Tl,Cl,xl,Ll,Rl,Ml,Il,Pl,Ul,Dl,Ol,Nl,Fl,Bl,jl,ql,Gl,Hl,Wl,zl,Vl,Kl,Yl,Xl,Ql,Jl,Zl,$l,eh,th,rh,nh,ih,oh,sh,ah,uh,ch,lh,hh,fh,dh,ph,mh,yh,gh,vh,wh,bh,Eh,Ah,kh,Sh,Th,Ch,xh,Lh,Rh,Mh,Ih,Ph,Uh,Dh,Oh,Nh,Fh,Bh,jh,qh,Gh,Hh,Wh,zh,Vh,Kh,Yh,Xh,Qh,Jh,Zh,$h,ep,tp,rp,np,ip,op,sp,ap,up,cp,lp,hp,fp,dp,pp,mp,yp,gp,vp,wp,bp,Ep,Ap,kp,Sp,Tp,Cp,xp,Lp,Rp,Mp,Ip,Pp,Up,Dp,Op,Np,Fp,Bp,jp,qp,Gp,Hp,Wp,zp,Vp,Kp,Yp,Xp,Qp,Jp,Zp,$p,ev,tv,rv,nv,iv,ov,sv,av,uv,cv,lv,hv,fv,dv,pv,mv,yv,gv,vv,wv,bv,Ev,Av,kv,Sv,Tv,Cv,xv,Lv,Rv,Mv,Iv,Pv,Uv,Dv,Ov,Nv,Fv,Bv,jv,qv,Gv,Hv,Wv,zv,Vv,Kv,Yv,Xv,Qv,Jv,Zv,$v,ew,tw,rw,nw,iw,ow,sw,aw,uw,cw,lw,hw,fw,dw,pw,mw,yw,gw,vw,ww,bw,Ew,Aw,kw,Sw,Tw,Cw,xw,Lw,Rw,Mw,Iw,Pw,Uw,Dw,Ow,Nw,Fw,Bw,jw,qw,Gw,Hw,Ww,zw,Vw,Kw,Yw,Xw,Qw,Jw,Zw,$w,ex,tx,rx,nx,ix,ox,sx,ax,ux,cx,lx,hx,fx,dx,px,mx,yx,gx,vx,wx,bx,Ex,Ax,kx,Sx,Tx,Cx,xx,Lx,Rx,Mx,Ix,Px,Ux,Dx,Ox,Nx,Fx,Bx,jx,qx,Gx,Hx,Wx,zx,Vx,Kx,Yx,Xx,Qx,Jx,Zx,$x,ey,ty,ry,ny,iy,oy,sy,ay,uy,cy,ly,hy,fy,dy,py,my,yy,gy,vy,wy,by,Ey,Ay,ky,Sy,Ty,Cy,xy,Ly,Ry,My,Iy,Py,Uy,Dy,Oy,Ny,Fy,By,jy,qy,Gy,Hy,Wy,zy,Vy,Ky,Yy,Xy,Qy,Jy,Zy,$y,ez,tz,rz,nz,iz,oz,sz,az,uz,cz,lz,hz,fz,dz,pz,mz,yz,gz,vz,wz,bz,Ez,Az,kz,Sz,Tz,Cz,xz,Lz,Rz,Mz,Iz,Pz,Uz,Dz,Oz,Nz,Fz,Bz,jz,qz,Gz,Hz,Wz,zz,Vz,Kz,Yz,Xz,Qz,Jz,Zz,$z,eA,tA,rA,nA,iA,oA,sA,aA,uA,cA,lA,hA,fA,dA,pA,mA,yA,gA,vA,wA,bA,EA,AA,kA,SA,TA,CA,xA,LA,RA,MA,IA,PA,UA,DA,OA,NA,FA,BA,jA,qA,GA,HA,WA,zA,VA,KA,YA,XA,QA,JA,ZA,$A,eT,tT,rT,nT,iT,oT,sT,aT,uT,cT,lT,hT,fT,dT,pT,mT,yT,gT,vT,wT,bT,ET,AT,kT,ST,TT,CT,xT,LT,RT,MT,IT,PT,UT,DT,OT,NT,FT,BT,jT,qT,GT,HT,WT,zT,VT,KT,YT,XT,QT,JT,ZT,$T,e$,t$,r$,n$,i$,o$,s$,a$,u$,c$,l$,h$,f$,d$,p$,m$,y$,g$,v$,w$,b$,E$,A$,k$,S$,T$,C$,x$,L$,R$,M$,I$,P$,U$,D$,O$,N$,F$,B$,j$,q$,G$,H$,W$,z$,V$,K$,Y$,X$,Q$,J$,Z$,$$,eR,tR,rR,nR,iR,oR,sR,aR,uR,cR,lR,hR,fR,dR,pR,mR,yR,gR,vR,wR,bR,ER,AR,kR,SR,TR,CR,xR,LR,RR,MR,IR,PR,UR,DR,OR,NR,FR,BR,jR,qR,GR,HR,WR,zR,VR,KR,YR,XR,QR,JR,ZR,$R,eI,tI,rI,nI,iI,oI,sI,aI,uI,cI,lI,hI,fI,dI,pI,mI,yI,gI,vI,wI,bI,EI,AI,kI,SI,TI,CI,xI,LI,RI,MI,II,PI,UI,DI,OI,NI,FI,BI,jI,qI,GI,HI,WI,zI,VI,KI,YI,XI,QI,JI,ZI,$I,eo,to,ro,no,io,oo,so,ao,uo,co,lo,ho,fo,po,mo,yo,go,vo,wo,bo,Eo,Ao,ko,So,To,Co,xo,Lo,Ro,Mo,Io,Po,Uo,Do,Oo,No,Fo,Bo,jo,qo,Go,Ho,Wo,zo,Vo,Ko,Yo,Xo,Qo,Jo,Zo,$o,es,ts,rs,ns,is,os,ss,as,us,cs,ls,hs,fs,ds,ps,ms,ys,gs,vs,ws,bs,Es,As,ks,Ss,Ts,Cs,xs,Ls,Rs,Ms,Is,Ps,Us,Ds,Os,Ns,Fs,Bs,js,qs,Gs,Hs,Ws,zs,Vs,Ks,Ys,Xs,Qs,Js,Zs,$s,ea,ta,ra,na,ia,oa,sa,aa,ua,ca,la,ha,fa,da,pa,ma,ya,ga,va,wa,ba,Ea,Aa,ka,Sa,Ta,Ca,xa,La,Ra,Ma,Ia,Pa,Ua,Da,Oa,Na,Fa,Ba,ja,qa,Ga,Ha,Wa,za,Va,Ka,Ya,Xa,Qa,Ja,Za,$a,el,tl,rl,nl,il,ol,sl,al,ul,cl,hl,fl,dl,pl,ml,yl,gl,vl,wl,bl,El,Al,kl,Sl,Tl,Cl,xl,Ll,Rl,Ml,Il,Pl,Ul,Dl,Ol,Nl,Fl,Bl,jl,ql,Gl,Hl,Wl,zl,Vl,Kl,Yl,Xl,Ql,Jl,Zl,$l,eh,th,rh,nh,ih,oh,sh,ah,uh,ch,lh,hh,fh,dh,ph,mh,yh,gh,vh,wh,bh,Eh,Ah,kh,Sh,Th,Ch,xh,Lh,Rh,Mh,Ih,Ph,Uh,Dh,Oh,Nh,Fh,Bh,jh,qh,Gh,Hh,Wh,zh,Vh,Kh,Yh,Xh,Qh,Jh,Zh,$h,ep,tp,rp,np,ip,op,sp,ap,up,cp,lp,hp,fp,dp,pp,mp,yp,gp,vp,wp,bp,Ep,Ap,kp,Sp,Tp,Cp,xp,Lp,Rp,Mp,Ip,Pp,Up,Dp,Op,Np,Fp,Bp,jp,qp,Gp,Hp,Wp,zp,Vp,Kp,Yp,Xp,Qp,Jp,Zp,$p,ev,tv,rv,nv,iv,ov,sv,av,uv,cv,lv,hv,fv,dv,pv,mv,yv,gv,vv,wv,bv,Ev,Av,kv,Sv,Tv,Cv,xv,Lv,Rv,Mv,Iv,Pv,Uv,Dv,Ov,Nv,Fv,Bv,jv,qv,Gv,Hv,Wv,zv,Vv,Kv,Yv,Xv,Qv,Jv,Zv,$v,ew,tw,rw,nw,iw,ow,sw,aw,uw,cw,lw,hw,fw,dw,pw,mw,yw,gw,vw,ww,bw,Ew,Aw,kw,Sw,Tw,Cw,xw,Lw,Rw,Mw,Iw,Pw,Uw,Dw,Ow,Nw,Fw,Bw,jw,qw,Gw,Hw,Ww,zw,Vw,Kw,Yw,Xw,Qw,Jw,Zw,$w,ex,tx,rx,nx,ix,ox,sx,ax,ux,cx,lx,hx,fx,dx,px,mx,yx,gx,vx,wx,bx,Ex,Ax,kx,Sx,Tx,Cx,xx,Lx,Rx,Mx,Ix,Px,Ux,Dx,Ox,Nx,Fx,Bx,jx,qx,Gx,Hx,Wx,zx,Vx,Kx,Yx,Xx,Qx,Jx,Zx,$x,ey,ty,ry,ny,iy,oy,sy,ay,uy,cy,ly,hy,fy,dy,py,my,yy,gy,vy,wy,by,Ey,Ay,ky,Sy,Ty,Cy,xy,Ly,Ry,My,Iy,Py,Uy,Dy,Oy,Ny,Fy,By,jy,qy,Gy,Hy,Wy,zy,Vy,Ky,Yy,Xy,Qy,Jy,Zy,$y,ez,tz,rz,nz,iz,oz,sz,az,uz,cz,lz,hz,fz,dz,pz,mz,yz,gz,vz,wz,bz,Ez,Az,kz,Sz,Tz,Cz,xz,Lz,Rz,Mz,Iz,Pz,Uz,Dz,Oz,Nz,Fz,Bz,jz,qz,Gz,Hz,Wz,zz,Vz,Kz,Yz,Xz,Qz,Jz,Zz,$z,eA,tA,rA,nA,iA,oA,sA,aA,uA,cA,lA,hA,fA,dA,pA,mA,yA,gA,vA,wA,bA,EA,AA,kA,SA,TA,CA,xA,LA,RA,MA,IA,PA,UA,DA,OA,NA,FA,BA,jA,qA,GA,HA,WA,zA,VA,KA,YA,XA,QA,JA,ZA,$A,eT,tT,rT,nT,iT,oT,sT,aT,uT,cT,lT,hT,fT,dT,pT,mT,yT,gT,vT,wT,bT,ET,AT,kT,ST,TT,CT,xT,LT,RT,MT,IT,PT,UT,DT,OT,NT,FT,BT,jT,qT,GT,HT,WT,zT,VT,KT,YT,XT,QT,JT,ZT,$T,e$,t$,r$,n$,i$,o$,s$,a$,u$,c$,l$,h$,f$,d$,p$,m$,y$,g$,v$,w$,b$,E$,A$,k$,S$,T$,C$,x$,L$,R$,M$,I$,P$,U$,D$,O$,N$,F$,B$,j$,q$,G$,H$,W$,z$,V$,K$,Y$,X$,Q$,J$,Z$,$$,eR,tR,rR,nR,iR,oR,sR,aR,uR,cR,lR,hR,fR,dR,pR,mR,yR,gR,vR,wR,bR,ER,AR,kR,SR,TR,CR,xR,LR,RR,MR,IR,PR,UR,DR,OR,NR,FR,BR,jR,qR,GR,HR,WR,zR,VR,KR,YR,XR,QR,JR,ZR,$R,eI,tI,rI,nI,iI,oI,sI,aI,uI,cI,lI,hI,fI,dI,pI,mI,yI,gI,vI,wI,bI,EI,AI,kI,SI,TI,CI,xI,LI,RI,MI,II,PI,UI,DI,OI,NI,FI,BI,jI,qI,GI,HI,WI,zI,VI,KI,YI,XI,QI,JI,ZI,$I,eo,to,ro,no,io,oo,so,ao,uo,co,lo,ho,fo,po,mo,yo,go,vo,wo,bo,Eo,Ao,ko,So,To,Co,xo,Lo,Ro,Mo,Io,Po,Uo,Do,Oo,No,Fo,Bo,jo,qo,Go,Ho,Wo,zo,Vo,Ko,Yo,Xo,Qo,Jo,Zo,$o,es,ts,rs,ns,is,os,ss,as,us,cs,ls,hs,fs,ds,ps,ms,ys,gs,vs,ws,bs,Es,As,ks,Ss,Ts,Cs,xs,Ls,Rs,Ms,Is,Ps,Us,Ds,Os,Ns,Fs,Bs,js,qs,Gs,Hs,Ws,zs,Vs,Ks,Ys,Xs,Qs,Js,Zs,$s,ea,ta,ra,na,ia,oa,sa,aa,ua,ca,la,ha,fa,da,pa,ma,ya,ga,va,wa,ba,Ea,Aa,ka,Sa,Ta,Ca,xa,La,Ra,Ma,Ia,Pa,Ua,Da,Oa,Na,Fa,Ba,ja,qa,Ga,Ha,Wa,za,Va,Ka,Ya,Xa,Qa,Ja,Za,$a,el,tl,rl,nl,il,ol,sl,al,ul,cl,hl,fl,dl,pl,ml,yl,gl,vl,wl,bl,El,Al,kl,Sl,Tl,Cl,xl,Ll,Rl,Ml,Il,Pl,Ul,Dl,Ol,Nl,Fl,Bl,jl,ql,Gl,Hl,Wl,zl,Vl,Kl,Yl,Xl,Ql,Jl,Zl,$l,eh,th,rh,nh,ih,oh,sh,ah,uh,ch,lh,hh,fh,dh,ph,mh,yh,gh,vh,wh,bh,Eh,Ah,kh,Sh,Th,Ch,xh,Lh,Rh,Mh,Ih,Ph,Uh,Dh,Oh,Nh,Fh,Bh,jh,qh,Gh,Hh,Wh,zh,Vh,Kh,Yh,Xh,Qh,Jh,Zh,$h,ep,tp,rp,np,ip,op,sp,ap,up,cp,lp,hp,fp,dp,pp,mp,yp,gp,vp,wp,bp,Ep,Ap,kp,Sp,Tp,Cp,xp,Lp,Rp,Mp,Ip,Pp,Up,Dp,Op,Np,Fp,Bp,jp,qp,Gp,Hp,Wp,zp,Vp,Kp,Yp,Xp,Qp,Jp,Zp,$p,ev,tv,rv,nv,iv,ov,sv,av,uv,cv,lv,hv,fv,dv,pv,mv,yv,gv,vv,wv,bv,Ev,Av,kv,Sv,Tv,Cv,xv,Lv,Rv,Mv,Iv,Pv,Uv,Dv,Ov,Nv,Fv,Bv,jv,qv,Gv,Hv,Wv,zv,Vv,Kv,Yv,Xv,Qv,Jv,Zv,$v,ew,tw,rw,nw,iw,ow,sw,aw,uw,cw,lw,hw,fw,dw,pw,mw,yw,gw,vw,ww,bw,Ew,Aw,kw,Sw,Tw,Cw,xw,Lw,Rw,Mw,Iw,Pw,Uw,Dw,Ow,Nw,Fw,Bw,jw,qw,Gw,Hw,Ww,zw,Vw,Kw,Yw,Xw,Qw,Jw,Zw,$w,ex,tx,rx,nx,ix,ox,sx,ax,ux,cx,lx,hx,fx,dx,px,mx,yx,gx,vx,wx,bx,Ex,Ax,kx,Sx,Tx,Cx,xx,Lx,Rx,Mx,Ix,Px,Ux,Dx,Ox,Nx,Fx,Bx,jx,qx,Gx,Hx,Wx,zx,Vx,Kx,Yx,Xx,Qx,Jx,Zx,$x,ey,ty,ry,ny,iy,oy,sy,ay,uy,cy,ly,hy,fy,dy,py,my,yy,gy,vy,wy,by,Ey,Ay,ky,Sy,Ty,Cy,xy,Ly,Ry,My,Iy,Py,Uy,Dy,Oy,Ny,Fy,By,jy,qy,Gy,Hy,Wy,zy,Vy,Ky,Yy,Xy,Qy,Jy,Zy,$y,ez,tz,rz,nz,iz,oz,sz,az,uz,cz,lz,hz,fz,dz,pz,mz,yz,gz,vz,wz,bz,Ez,Az,kz,Sz,Tz,Cz,xz,Lz,Rz,Mz,Iz,Pz,Uz,Dz,Oz,Nz,Fz,Bz,jz,qz,Gz,Hz,Wz,zz,Vz,Kz,Yz,Xz,Qz,Jz,Zz,$z,eA,tA,rA,nA,iA,oA,sA,aA,uA,cA,lA,hA,fA,dA,pA,mA,yA,gA,vA,wA,bA,EA,AA,kA,SA,TA,CA,xA,LA,RA,MA,IA,PA,UA,DA,OA,NA,FA,BA,jA,qA,GA,HA,WA,zA,VA,KA,YA,XA,QA,JA,ZA,$A,eT,tT,rT,nT,iT,oT,sT,aT,uT,cT,lT,hT,fT,dT,pT,mT,yT,gT,vT,wT,bT,ET,AT,kT,ST,TT,CT,xT,LT,RT,MT,IT,PT,UT,DT,OT,NT,FT,BT,jT,qT,GT,HT,WT,zT,VT,KT,YT,XT,QT,JT,ZT,$T,e$,t$,r$,n$,i$,o$,s$,a$,u$,c$,l$,h$,f$,d$,p$,m$,y$,g$,v$,w$,b$,E$,A$,k$,S$,T$,C$,x$,L$,R$,M$,I$,P$,U$,D$,O$,N$,F$,B$,j$,q$,G$,H$,W$,z$,V$,K$,Y$,X$,Q$,J$,Z$,$$,eR,tR,rR,nR,iR,oR,sR,aR,uR,cR,lR,hR,fR,dR,pR,mR,yR,gR,vR,wR,bR,ER,AR,kR,SR,TR,CR,xR,LR,RR,MR,IR,PR,UR,DR,OR,NR,FR,BR,jR,qR,GR,HR,WR,zR,VR,KR,YR,XR,QR,JR,ZR,$R,eI,tI,rI,nI,iI,oI,sI,aI,uI,cI,lI,hI,fI,dI,pI,mI,yI,gI,vI,wI,bI,EI,AI,kI,SI,TI,CI,xI,LI,RI,MI,II,PI,UI,DI,OI,NI,FI,BI,jI,qI,GI,HI,WI,zI,VI,KI,YI,XI,QI,JI,ZI,$I,eo,to,ro,no,io,oo,so,ao,uo,co,lo,ho,fo,po,mo,yo,go,vo,wo,bo,Eo,Ao,ko,So,To,Co,xo,Lo,Ro,Mo,Io,Po,Uo,Do,Oo,No,Fo,Bo,jo,qo,Go,Ho,Wo,zo,Vo,Ko,Yo,Xo,Qo,Jo,Zo,$o,es,ts,rs,ns,is,os,ss,as,us,cs,ls,hs,fs,ds,ps,ms,ys,gs,vs,ws,bs,Es,As,ks,Ss,Ts,Cs,xs,Ls,Rs,Ms,Is,Ps,Us,Ds,Os,Ns,Fs,Bs,js,qs,Gs,Hs,Ws,zs,Vs,Ks,Ys,Xs,Qs,Js,Zs,$s,ea,ta,ra,na,ia,oa,sa,aa,ua,ca,la,ha,fa,da,pa,ma,ya,ga,va,wa,ba,Ea,Aa,ka,Sa,Ta,Ca,xa,La,Ra,Ma,Ia,Pa,Ua,Da,Oa,Na,Fa,Ba,ja,qa,Ga,Ha,Wa,za,Va,Ka,Ya,Xa,Qa,Ja,Za,$a,el,tl,rl,nl,il,ol,sl,al,ul,cl,hl,fl,dl,pl,ml,yl,gl,vl,wl,bl,El,Al,kl,Sl,Tl,Cl,xl,Ll,Rl,Ml,Il,Pl,Ul,Dl,Ol,Nl,Fl,Bl,jl,ql,Gl,Hl,Wl,zl,Vl,Kl,Yl,Xl,Ql,Jl,Zl,$l,eh,th,rh,nh,ih,oh,sh,ah,uh,ch,lh,hh,fh,dh,ph,mh,yh,gh,vh,wh,bh,Eh,Ah,kh,Sh,Th,Ch,xh,Lh,Rh,Mh,Ih,Ph,Uh,Dh,Oh,Nh,Fh,Bh,jh,qh,Gh,Hh,Wh,zh,Vh,Kh,Yh,Xh,Qh,Jh,Zh,$h,ep,tp,rp,np,ip,op,sp,ap,up,cp,lp,hp,fp,dp,pp,mp,yp,gp,vp,wp,bp,Ep,Ap,kp,Sp,Tp,Cp,xp,Lp,Rp,Mp,Ip,Pp,Up,Dp,Op,Np,Fp,Bp,jp,qp,Gp,Hp,Wp,zp,Vp,Kp,Yp,Xp,Qp,Jp,Zp,$p,ev,tv,rv,nv,iv,ov,sv,av,uv,cv,lv,hv,fv,dv,pv,mv,yv,gv,vv,wv,bv,Ev,Av,kv,Sv,Tv,Cv,xv,Lv,Rv,Mv,Iv,Pv,Uv,Dv,Ov,Nv,Fv,Bv,jv,qv,Gv,Hv,Wv,zv,Vv,Kv,Yv,Xv,Qv,Jv,Zv,$v,ew,tw,rw,nw,iw,ow,sw,aw,uw,cw,lw,hw,fw,dw,pw,mw,yw,gw,vw,ww,bw,Ew,Aw,kw,Sw,Tw,Cw,xw,Lw,Rw,Mw,Iw,Pw,Uw,Dw,Ow,Nw,Fw,Bw,jw,qw,Gw,Hw,Ww,zw,Vw,Kw,Yw,Xw,Qw,Jw,Zw,$w,ex,tx,rx,nx,ix,ox,sx,ax,ux,cx,lx,hx,fx,dx,px,mx,yx,gx,vx,wx,bx,Ex,Ax,kx,Sx,Tx,Cx,xx,Lx,Rx,Mx,Ix,Px,Ux,Dx,Ox,Nx,Fx,Bx,jx,qx,Gx,Hx,Wx,zx,Vx,Kx,Yx,Xx,Qx,Jx,Zx,$x,ey,ty,ry,ny,iy,oy,sy,ay,uy,cy,ly,hy,fy,dy,py,my,yy,gy,vy,wy,by,Ey,Ay,ky,Sy,Ty,Cy,xy,Ly,Ry,My,Iy,Py,Uy,Dy,Oy,Ny,Fy,By,jy,qy,Gy,Hy,Wy,zy,Vy,Ky,Yy,Xy,Qy,Jy,Zy,$y,ez,tz,rz,nz,iz,oz,sz,az,uz,cz,lz,hz,fz,dz,pz,mz,yz,gz,vz,wz,bz,Ez,Az,kz,Sz,Tz,Cz,xz,Lz,Rz,Mz,Iz,Pz,Uz,Dz,Oz,Nz,Fz,Bz,jz,qz,Gz,Hz,Wz,zz,Vz,Kz,Yz,Xz,Qz,Jz,Zz,$z,eA,tA,rA,nA,iA,oA,sA,aA,uA,cA,lA,hA,fA,dA,pA,mA,yA,gA,vA,wA,bA,EA,AA,kA,SA,TA,CA,xA,LA,RA,MA,IA,PA,UA,DA,OA,NA,FA,BA,jA,qA,GA,HA,WA,zA,VA,KA,YA,XA,QA,JA,ZA,$A,eT,tT,rT,nT,iT,oT,sT,aT,uT,cT,lT,hT,fT,dT,pT,mT,yT,gT,vT,wT,bT,ET,AT,kT,ST,TT,CT,xT,LT,RT,MT,IT,PT,UT,DT,OT,NT,FT,BT,jT,qT,GT,HT,WT,zT,VT,KT,YT,XT,QT,JT,ZT,$T,e$,t$,r$,n$,i$,o$,s$,a$,u$,c$,l$,h$,f$,d$,p$,m$,y$,g$,v$,w$,b$,E$,A$,k$,S$,T$,C$,x$,L$,R$,M$,I$,P$,U$,D$,O$,N$,F$,B$,j$,q$,G$,H$,W$,z$,V$,K$,Y$,X$,Q$,J$,Z$,$$,eR,tR,rR,nR,iR,oR,sR,aR,uR,cR,lR,hR,fR,dR,pR,mR,yR,gR,vR,wR,bR,ER,AR,kR,SR,TR,CR,xR,LR,RR,MR,IR,PR,UR,DR,OR,NR,FR,BR,jR,qR,GR,HR,WR,zR,VR,KR,YR,XR,QR,JR,ZR,$R,eI,tI,rI,nI,iI,oI,sI,aI,uI,cI,lI,hI,fI,dI,pI,mI,yI,gI,vI,wI,bI,EI,AI,kI,SI,TI,CI,xI,LI,RI,MI,II,PI,UI,DI,OI,NI,FI,BI,jI,qI,GI,HI,WI,zI,VI,KI,YI,XI,QI,JI,ZI,$I,eo,to,ro,no,io,oo,so,ao,uo,co,lo,ho,fo,po,mo,yo,go,vo,wo,bo,Eo,Ao,ko,So,To,Co,xo,Lo,Ro,Mo,Io,Po,Uo,Do,Oo,No,Fo,Bo,jo,qo,Go,Ho,Wo,zo,Vo,Ko,Yo,Xo,Qo,Jo,Zo,$o,es,ts,rs,ns,is,os,ss,as,us,cs,ls,hs,fs,ds,ps,ms,ys,gs,vs,ws,bs,Es,As,ks,Ss,Ts,Cs,xs,Ls,Rs,Ms,Is,Ps,Us,Ds,Os,Ns,Fs,Bs,js,qs,Gs,Hs,Ws,zs,Vs,Ks,Ys,Xs,Qs,Js,Zs,$s,ea,ta,ra,na,ia,oa,sa,aa,ua,ca,la,ha,fa,da,pa,ma,ya,ga,va,wa,ba,Ea,Aa,ka,Sa,Ta,Ca,xa,La,Ra,Ma,Ia,Pa,Ua,Da,Oa,Na,Fa,Ba,ja,qa,Ga,Ha,Wa,za,Va,Ka,Ya,Xa,Qa,Ja,Za,$a,el,tl,rl,nl,il,ol,sl,al,ul,cl,hl,fl,dl,pl,ml,yl,gl,vl,wl,bl,El,Al,kl,Sl,Tl,Cl,xl,Ll,Rl,Ml,Il,Pl,Ul,Dl,Ol,Nl,Fl,Bl,jl,ql,Gl,Hl,Wl,zl,Vl,Kl,Yl,Xl,Ql,Jl,Zl,$l,eh,th,rh,nh,ih,oh,sh,ah,uh,ch,lh,hh,fh,dh,ph,mh,yh,gh,vh,wh,bh,Eh,Ah,kh,Sh,Th,Ch,xh,Lh,Rh,Mh,Ih,Ph,Uh,Dh,Oh,Nh,Fh,Bh,jh,qh,Gh,Hh,Wh,zh,Vh,Kh,Yh,Xh,Qh,Jh,Zh,$h,ep,tp,rp,np,ip,op,sp,ap,up,cp,lp,hp,fp,dp,pp,mp,yp,gp,vp,wp,bp,Ep,Ap,kp,Sp,Tp,Cp,xp,Lp,Rp,Mp,Ip,Pp,Up,Dp,Op,Np,Fp,Bp,jp,qp,Gp,Hp,Wp,zp,Vp,Kp,Yp,Xp,Qp,Jp,Zp,$p,ev,tv,rv,nv,iv,ov,sv,av,uv,cv,lv,hv,fv,dv,pv,mv,yv,gv,vv,wv,bv,Ev,Av,kv,Sv,Tv,Cv,xv,Lv,Rv,Mv,Iv,Pv,Uv,Dv,Ov,Nv,Fv,Bv,jv,qv,Gv,Hv,Wv,zv,Vv,Kv,Yv,Xv,Qv,Jv,Zv,$v,ew,tw,rw,nw,iw,ow,sw,aw,uw,cw,lw,hw,fw,dw,pw,mw,yw,gw,vw,ww,bw,Ew,Aw,kw,Sw,Tw,Cw,xw,Lw,Rw,Mw,Iw,Pw,Uw,Dw,Ow,Nw,Fw,Bw,jw,qw,Gw,Hw,Ww,zw,Vw,Kw,Yw,Xw,Qw,Jw,Zw,$w,ex,tx,rx,nx,ix,ox,sx,ax,ux,cx,lx,hx,fx,dx,px,mx,yx,gx,vx,wx,bx,Ex,Ax,kx,Sx,Tx,Cx,xx,Lx,Rx,Mx,Ix,Px,Ux,Dx,Ox,Nx,Fx,Bx,jx,qx,Gx,Hx,Wx,zx,Vx,Kx,Yx,Xx,Qx,Jx,Zx,$x,ey,ty,ry,ny,iy,oy,sy,ay,uy,cy,ly,hy,fy,dy,py,my,yy,gy,vy,wy,by,Ey,Ay,ky,Sy,Ty,Cy,xy,Ly,Ry,My,Iy,Py,Uy,Dy,Oy,Ny,Fy,By,jy,qy,Gy,Hy,Wy,zy,Vy,Ky,Yy,Xy,Qy,Jy,Zy,$y,ez,tz,rz,nz,iz,oz,sz,az,uz,cz,lz,hz,fz,dz,pz,mz,yz,gz,vz,wz,bz,Ez,Az,kz,Sz,Tz,Cz,xz,Lz,Rz,Mz,Iz,Pz,Uz,Dz,Oz,Nz,Fz,Bz,jz,qz,Gz,Hz,Wz,zz,Vz,Kz,Yz,Xz,Qz,Jz,Zz,$z,eA,tA,rA,nA,iA,oA,sA,aA,uA,cA,lA,hA,fA,dA,pA,mA,yA,gA,vA,wA,bA,EA,AA,kA,SA,TA,CA,xA,LA,RA,MA,IA,PA,UA,DA,OA,NA,FA,BA,jA,qA,GA,HA,WA,zA,VA,KA,YA,XA,QA,JA,ZA,$A,eT,tT,rT,nT,iT,oT,sT,aT,uT,cT,lT,hT,fT,dT,pT,mT,yT,gT,vT,wT,bT,ET,AT,kT,ST,TT,CT,xT,LT,RT,MT,IT,PT,UT,DT,OT,NT,FT,BT,jT,qT,GT,HT,WT,zT,VT,KT,YT,XT,QT,JT,ZT,$T,e$,t$,r$,n$,i$,o$,s$,a$,u$,c$,l$,h$,f$,d$,p$,m$,y$,g$,v$,w$,b$,E$,A$,k$,S$,T$,C$,x$,L$,R$,M$,I$,P$,U$,D$,O$,N$,F$,B$,j$,q$,G$,H$,W$,z$,V$,K$,Y$,X$,Q$,J$,Z$,$$,eR,tR,rR,nR,iR,oR,sR,aR,uR,cR,lR,hR,fR,dR,pR,mR,yR,gR,vR,wR,bR,ER,AR,kR,SR,TR,CR,xR,LR,RR,MR,IR,PR,UR,DR,OR,NR,FR,BR,jR,qR,GR,HR,WR,zR,VR,KR,YR,XR,QR,JR,ZR,$R,eI,tI,rI,nI,iI,oI,sI,aI,uI,cI,lI,hI,fI,dI,pI,mI,yI,gI,vI,wI,bI,EI,AI,kI,SI,TI,CI,xI,LI,RI,MI,II,PI,UI,DI,OI,NI,FI,BI,jI,qI,GI,HI,WI,zI,VI,KI,YI,XI,QI,JI,ZI,$I,eo,to,ro,no,io,oo,so,ao,uo,co,lo,ho,fo,po,mo,yo,go,vo,wo,bo,Eo,Ao,ko,So,To,Co,xo,Lo,Ro,Mo,Io,Po,Uo,Do,Oo,No,Fo,Bo,jo,qo,Go,Ho,Wo,zo,Vo,Ko,Yo,Xo,Qo,Jo,Zo,$o,es,ts,rs,ns,is,os,ss,as,us,cs,ls,hs,fs,ds,ps,ms,ys,gs,vs,ws,bs,Es,As,ks,Ss,Ts,Cs,xs,Ls,Rs,Ms,Is,Ps,Us,Ds,Os,Ns,Fs,Bs,js,qs,Gs,Hs,Ws,zs,Vs,Ks,Ys,Xs,Qs,Js,Zs,$s,ea,ta,ra,na,ia,oa,sa,aa,ua,ca,la,ha,fa,da,pa,ma,ya,ga,va,wa,ba,Ea,Aa,ka,Sa,Ta,Ca,xa,La,Ra,Ma,Ia,Pa,Ua,Da,Oa,Na,Fa,Ba,ja,qa,Ga,Ha,Wa,za,Va,Ka,Ya,Xa,Qa,Ja,Za,$a,el,tl,rl,nl,il,ol,sl,al,ul,cl,hl,fl,dl,pl,ml,yl,gl,vl,wl,bl,El,Al,kl,Sl,Tl,Cl,xl,Ll,Rl,Ml,Il,Pl,Ul,Dl,Ol,Nl,Fl,Bl,jl,ql,Gl,Hl,Wl,zl,Vl,Kl,Yl,Xl,Ql,Jl,Zl,$l,eh,th,rh,nh,ih,oh,sh,ah,uh,ch,lh,hh,fh,dh,ph,mh,yh,gh,vh,wh,bh,Eh,Ah,kh,Sh,Th,Ch,xh,Lh,Rh,Mh,Ih,Ph,Uh,Dh,Oh,Nh,Fh,Bh,jh,qh,Gh,Hh,Wh,zh,Vh,Kh,Yh,Xh,Qh,Jh,Zh,$h,ep,tp,rp,np,ip,op,sp,ap
+        // 配置
+        const CONTRACT_ADDRESS = '0xa198115398cC0535b7973075cf75271521598D4a';
+        const ODOG_ADDRESS = '0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8';
+        const RPC_URL = 'https://rpc.xlayer.network';
+        const CHAIN_ID = 196;
+
+        // ABI
+        const CONTRACT_ABI = [
+            'function writeMessage(string calldata message) external',
+            'function tokenURI(uint256 tokenId) external view returns (string)',
+            'function totalSupply() external view returns (uint256)',
+            'function getMessage(uint256 tokenId) external view returns (string)'
+        ];
+        const ODOG_ABI = [
+            'function approve(address spender, uint256 amount) external returns (bool)',
+            'function allowance(address owner, address spender) external view returns (uint256)'
+        ];
+
+        let provider, signer, contract, odogContract;
+        let account;
+
+        // 连接钱包
+        async function connectWallet() {
+            console.log('尝试连接钱包...');
+            if (typeof window.ethereum === 'undefined') {
+                showStatus('请安装MetaMask', 'error');
+                console.error('MetaMask未检测到');
+                return;
+            }
+
+            try {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                console.log('提供者初始化:', provider);
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                console.log('请求账户成功');
+                const network = await provider.getNetwork();
+                console.log('当前网络:', network);
+                if (network.chainId !== CHAIN_ID) {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0xc4' }],
+                    });
+                    console.log('切换到xlayer (ID 196)');
+                }
+                signer = provider.getSigner();
+                account = await signer.getAddress();
+                console.log('连接账户:', account);
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                odogContract = new ethers.Contract(ODOG_ADDRESS, ODOG_ABI, signer);
+                console.log('合约实例化完成');
+
+                document.getElementById('connectBtn').textContent = `已连接: ${account.slice(0,6)}...${account.slice(-4)}`;
+                document.getElementById('mintBtn').disabled = false;
+                updateSupply();
+                showStatus('连接成功！', 'success');
+            } catch (error) {
+                console.error('连接错误:', error);
+                showStatus('连接失败: ' + error.message, 'error');
+            }
+        }
+
+        // 铸造NFT
+        async function mintNFT() {
+            const message = document.getElementById('messageInput').value.trim();
+            if (!message) {
+                showStatus('消息不能为空', 'error');
+                return;
+            }
+
+            const mintBtn = document.getElementById('mintBtn');
+            mintBtn.disabled = true;
+            mintBtn.textContent = '铸造中...';
+
+            try {
+                const allowance = await odogContract.allowance(account, CONTRACT_ADDRESS);
+                const need = ethers.utils.parseEther('1');
+                if (allowance < need) {
+                    showStatus('授权ODOG中...', 'success');
+                    const tx = await odogContract.approve(CONTRACT_ADDRESS, need);
+                    await tx.wait();
+                    showStatus('授权成功！', 'success');
+                }
+
+                showStatus('铸造NFT中...', 'success');
+                const tx = await contract.writeMessage(message);
+                const receipt = await tx.wait();
+                const tokenId = receipt.events.find(e => e.event === 'Transfer').args.tokenId.toString();
+
+                showStatus(`铸造成功！Token ID: ${tokenId}`, 'success');
+                document.getElementById('messageInput').value = '';
+                previewNFT(tokenId);
+            } catch (error) {
+                showStatus('铸造失败: ' + error.message, 'error');
+            }
+
+            mintBtn.disabled = false;
+            mintBtn.textContent = '铸造NFT (1 ODOG)';
+        }
+
+        // 预览NFT
+        async function previewNFT(tokenId) {
+            try {
+                const uri = await contract.tokenURI(tokenId);
+                const json = JSON.parse(atob(uri.split('base64,')[1]));
+                document.getElementById('nftImg').src = json.image;
+                document.getElementById('tokenId').textContent = `Token ID: ${tokenId}`;
+                document.getElementById('preview').style.display = 'block';
+            } catch (error) {
+                showStatus('预览失败: ' + error.message, 'error');
+            }
+        }
+
+        // 查看NFT
+        window.viewNFT = async function() {
+            const tokenId = document.getElementById('tokenIdInput').value;
+            if (!tokenId) return;
+            previewNFT(tokenId);
+        };
+
+        // 更新总供应
+        async function updateSupply() {
+            if (!contract) return;
+            const supply = await contract.totalSupply();
+            document.getElementById('totalSupply').textContent = supply.toString();
+        }
+
+        // 显示状态
+        function showStatus(msg, type) {
+            const status = document.getElementById('status');
+            status.textContent = msg;
+            status.className = `status ${type}`;
+        }
+
+        // 事件监听
+        document.getElementById('connectBtn').addEventListener('click', connectWallet);
+        document.getElementById('mintBtn').addEventListener('click', mintNFT);
+
+        // 页面加载时尝试连接
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', () => location.reload());
+            window.ethereum.on('chainChanged', () => location.reload());
+            console.log('MetaMask检测到，监听事件已绑定');
+        } else {
+            console.log('MetaMask未检测到');
+        }
+    </script>
+</body>
+</html>
