@@ -4,112 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Odog Message Wall - 留言墙NFT</title>
-    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" defer></script> <!-- 回滚CDN -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" defer></script>
     <style>
-        body {
-            background-color: #15202b;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .header h1 {
-            color: #1da1f2;
-        }
-        .connect-btn {
-            background-color: #1da1f2;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-        .connect-btn:hover {
-            background-color: #0d8bd9;
-        }
-        .mint-section {
-            background-color: #1e293b;
-            border-radius: 10px;
-            padding: 20px;
-            width: 100%;
-            max-width: 500px;
-            margin-bottom: 20px;
-        }
-        .mint-section h2 {
-            text-align: center;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            background-color: #15202b;
-            border: 1px solid #1da1f2;
-            color: white;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        .mint-btn {
-            background-color: #1da1f2;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-        }
-        .mint-btn:hover {
-            background-color: #0d8bd9;
-        }
-        .mint-btn:disabled {
-            background-color: #4a5568;
-            cursor: not-allowed;
-        }
-        .status {
-            text-align: center;
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 5px;
-        }
+        body { background-color: #15202b; color: #ffffff; font-family: Arial; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { color: #1da1f2; }
+        .connect-btn { background-color: #1da1f2; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; margin-bottom: 20px; }
+        .connect-btn:hover { background-color: #0d8bd9; }
+        .mint-section { background-color: #1e293b; border-radius: 10px; padding: 20px; width: 100%; max-width: 500px; margin-bottom: 20px; }
+        .mint-section h2 { text-align: center; }
+        input[type="text"] { width: 100%; padding: 10px; background-color: #15202b; border: 1px solid #1da1f2; color: white; border-radius: 5px; margin-bottom: 10px; }
+        .mint-btn { background-color: #1da1f2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; }
+        .mint-btn:hover { background-color: #0d8bd9; }
+        .mint-btn:disabled { background-color: #4a5568; cursor: not-allowed; }
+        .status { text-align: center; margin-top: 10px; padding: 10px; border-radius: 5px; }
         .success { background-color: #48bb78; }
         .error { background-color: #f56565; }
-        .nft-preview {
-            margin-top: 20px;
-            text-align: center;
-        }
-        .nft-preview img {
-            width: 300px;
-            height: 300px;
-            background-color: #15202b;
-            border: 1px solid #1da1f2;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            width: 100%;
-            max-width: 800px;
-        }
-        .card {
-            background-color: #1e293b;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-        }
-        .card button {
-            background-color: #1da1f2;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+        .nft-preview { margin-top: 20px; text-align: center; }
+        .nft-preview img { width: 300px; height: 300px; background-color: #15202b; border: 1px solid #1da1f2; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; width: 100%; max-width: 800px; }
+        .card { background-color: #1e293b; border-radius: 10px; padding: 15px; text-align: center; }
+        .card button { background-color: #1da1f2; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -146,13 +61,11 @@
     </div>
 
     <script>
-        // 配置
         const CONTRACT_ADDRESS = '0xa198115398cC0535b7973075cf75271521598D4a';
         const ODOG_ADDRESS = '0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8';
         const RPC_URL = 'https://rpc.xlayer.network';
         const CHAIN_ID = 196;
 
-        // ABI
         const CONTRACT_ABI = [
             'function writeMessage(string calldata message) external',
             'function tokenURI(uint256 tokenId) external view returns (string)',
@@ -167,47 +80,36 @@
         let provider, signer, contract, odogContract;
         let account;
 
-        // 连接钱包
         async function connectWallet() {
-            console.log('尝试连接钱包...');
             if (typeof window.ethereum === 'undefined') {
-                showStatus('请安装MetaMask', 'error');
-                console.error('MetaMask未检测到');
+                showStatus('请安装钱包（如OKX Wallet）', 'error');
                 return;
             }
 
             try {
                 provider = new ethers.providers.Web3Provider(window.ethereum);
-                console.log('提供者初始化:', provider);
                 await window.ethereum.request({ method: 'eth_requestAccounts' });
-                console.log('请求账户成功');
                 const network = await provider.getNetwork();
-                console.log('当前网络:', network);
                 if (network.chainId !== CHAIN_ID) {
                     await window.ethereum.request({
                         method: 'wallet_switchEthereumChain',
                         params: [{ chainId: '0xc4' }],
                     });
-                    console.log('切换到xlayer (ID 196)');
                 }
                 signer = provider.getSigner();
                 account = await signer.getAddress();
-                console.log('连接账户:', account);
                 contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
                 odogContract = new ethers.Contract(ODOG_ADDRESS, ODOG_ABI, signer);
-                console.log('合约实例化完成');
 
                 document.getElementById('connectBtn').textContent = `已连接: ${account.slice(0,6)}...${account.slice(-4)}`;
                 document.getElementById('mintBtn').disabled = false;
                 updateSupply();
                 showStatus('连接成功！', 'success');
             } catch (error) {
-                console.error('连接错误:', error);
                 showStatus('连接失败: ' + error.message, 'error');
             }
         }
 
-        // 铸造NFT
         async function mintNFT() {
             const message = document.getElementById('messageInput').value.trim();
             if (!message) {
@@ -223,13 +125,10 @@
                 const allowance = await odogContract.allowance(account, CONTRACT_ADDRESS);
                 const need = ethers.utils.parseEther('1');
                 if (allowance < need) {
-                    showStatus('授权ODOG中...', 'success');
                     const tx = await odogContract.approve(CONTRACT_ADDRESS, need);
                     await tx.wait();
-                    showStatus('授权成功！', 'success');
                 }
 
-                showStatus('铸造NFT中...', 'success');
                 const tx = await contract.writeMessage(message);
                 const receipt = await tx.wait();
                 const tokenId = receipt.events.find(e => e.event === 'Transfer').args.tokenId.toString();
@@ -245,7 +144,6 @@
             mintBtn.textContent = '铸造NFT (1 ODOG)';
         }
 
-        // 预览NFT
         async function previewNFT(tokenId) {
             try {
                 const uri = await contract.tokenURI(tokenId);
@@ -258,38 +156,30 @@
             }
         }
 
-        // 查看NFT
         window.viewNFT = async function() {
             const tokenId = document.getElementById('tokenIdInput').value;
             if (!tokenId) return;
             previewNFT(tokenId);
         };
 
-        // 更新总供应
         async function updateSupply() {
             if (!contract) return;
             const supply = await contract.totalSupply();
             document.getElementById('totalSupply').textContent = supply.toString();
         }
 
-        // 显示状态
         function showStatus(msg, type) {
             const status = document.getElementById('status');
             status.textContent = msg;
             status.className = `status ${type}`;
         }
 
-        // 事件监听
         document.getElementById('connectBtn').addEventListener('click', connectWallet);
         document.getElementById('mintBtn').addEventListener('click', mintNFT);
 
-        // 页面加载时尝试连接
         if (window.ethereum) {
             window.ethereum.on('accountsChanged', () => location.reload());
             window.ethereum.on('chainChanged', () => location.reload());
-            console.log('MetaMask检测到，监听事件已绑定');
-        } else {
-            console.log('MetaMask未检测到');
         }
     </script>
 </body>
