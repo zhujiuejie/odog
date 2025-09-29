@@ -51,7 +51,7 @@
         <h2>Odog Message Wall</h2>
         <textarea id="messageInput" placeholder="输入你的留言 (最多100字符)"></textarea>
         <br>
-        <button onclick="mintNFT()">Mint NFT</button>
+        <button onclick="approveAndMint()">Mint NFT</button>
         <div id="messageDisplay"></div>
     </div>
 
@@ -62,6 +62,7 @@
         const chainName = "X Layer Mainnet";
         const currency = "OKB";
         const explorerUrl = "https://web3.okx.com/zh-hans/explorer/x-layer";
+        const odogTokenAddress = "0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8"; // ODOG 代币地址
 
         const abi = [
             {
@@ -118,7 +119,7 @@
                     }
                 ],
                 "stateMutability": "view",
-                "type": "function"
+                "type": "type"
             },
             {
                 "inputs": [],
@@ -135,38 +136,54 @@
             }
         ];
 
+        const erc20Abi = [
+            {
+                "constant": false,
+                "inputs": [
+                    { "name": "_spender", "type": "address" },
+                    { "name": "_value", "type": "uint256" }
+                ],
+                "name": "approve",
+                "outputs": [{ "name": "", "type": "bool" }],
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [
+                    { "name": "_owner", "type": "address" },
+                    { "name": "_spender", "type": "address" }
+                ],
+                "name": "allowance",
+                "outputs": [{ "name": "", "type": "uint256" }],
+                "type": "function"
+            }
+        ];
+
         let contract;
+        let odogContract;
         let accounts;
         let web3;
 
         async function addAndSwitchChain() {
             if (window.ethereum) {
                 try {
-                    // 检查是否已添加网络
                     const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
                     if (parseInt(currentChainId, 16) !== chainId) {
-                        // 添加网络
                         await window.ethereum.request({
                             method: 'wallet_addEthereumChain',
                             params: [{
                                 chainId: '0x' + chainId.toString(16),
                                 chainName: chainName,
-                                nativeCurrency: {
-                                    name: currency,
-                                    symbol: currency,
-                                    decimals: 18
-                                },
+                                nativeCurrency: { name: currency, symbol: currency, decimals: 18 },
                                 rpcUrls: [rpcUrl],
                                 blockExplorerUrls: [explorerUrl]
                             }]
                         });
-                        // 切换网络
                         await window.ethereum.request({
                             method: 'wallet_switchEthereumChain',
                             params: [{ chainId: '0x' + chainId.toString(16) }]
                         });
                     }
-                    console.log("已切换到 X Layer (Chain ID: 196)");
                 } catch (error) {
                     console.error("添加/切换网络失败:", error);
                     if (error.code === 4001) {
@@ -183,12 +200,11 @@
         async function connectWallet() {
             if (window.ethereum) {
                 try {
-                    // 先添加并切换到 X Layer
                     await addAndSwitchChain();
-                    // 连接账户
                     accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     web3 = new Web3(window.ethereum);
                     contract = new web3.eth.Contract(abi, contractAddress);
+                    odogContract = new web3.eth.Contract(erc20Abi, odogTokenAddress);
                     console.log("Connected to X Layer:", accounts[0]);
                 } catch (error) {
                     console.error("连接钱包失败:", error);
@@ -199,7 +215,7 @@
             }
         }
 
-        async function mintNFT() {
+        async function approveAndMint() {
             if (!contract) await connectWallet();
             const message = document.getElementById("messageInput").value.trim();
             if (message.length === 0) {
@@ -212,13 +228,23 @@
             }
 
             try {
+                // 检查当前授权金额
+                const allowance = await odogContract.methods.allowance(accounts[0], contractAddress).call();
+                const requiredAmount = web3.utils.toWei("100", "ether"); // 100 ODOG
+                if (web3.utils.toBN(allowance).lt(web3.utils.toBN(requiredAmount))) {
+                    // 授权 100 ODOG
+                    await odogContract.methods.approve(contractAddress, requiredAmount).send({ from: accounts[0] });
+                    alert("授权成功，请再次点击 Mint NFT！");
+                }
+
+                // Mint NFT
                 await contract.methods.writeMessage(message).send({ from: accounts[0] });
                 alert("NFT 铸造成功！请查看你的钱包。");
                 document.getElementById("messageInput").value = "";
                 displayLatestMessage();
             } catch (error) {
-                console.error("铸造失败:", error);
-                alert("铸造失败，请确保有足够的 ODOG 代币并已授权！错误: " + error.message);
+                console.error("操作失败:", error);
+                alert("操作失败，请确保有足够的 ODOG 代币和 OKB Gas 费！错误: " + error.message);
             }
         }
 
@@ -236,7 +262,6 @@
             }
         }
 
-        // 页面加载时连接钱包并显示最新留言
         window.onload = async () => {
             if (window.ethereum) {
                 await connectWallet();
