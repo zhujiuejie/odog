@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Odog 留言墙 NFT 铸造</title>
-    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #15202b; color: #fff; text-align: center; padding: 20px; }
         .container { max-width: 600px; margin: 50px auto; background-color: #1e2a3a; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); }
@@ -23,7 +22,7 @@
         <h1>Odog 留言墙 NFT 铸造</h1>
         <p>网络: X Layer (ID: 196) | 费用: 100 ODOG (需要授权)</p>
         
-        <button id="connectButton">连接 MetaMask</button>
+        <button id="connectButton">连接 MetaMask / OKX 钱包</button>
         <p id="statusMessage" class="info">请先连接您的钱包。</p>
 
         <hr>
@@ -35,12 +34,14 @@
         <p id="result" class="info">状态信息将显示在这里。</p>
     </div>
 
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+    
     <script>
         // ----------------------------------------------------
         // 1. 配置信息 (已更新为您的新合约地址)
         // ----------------------------------------------------
         
-        // 您的 OdogMessageWall 合约地址
+        // 您的 OdogMessageWall 合约地址 (最新)
         const NFT_CONTRACT_ADDRESS = "0x2b077a38E41FE4fb99b5458A25C87F07Bc2Ef7CF";
         // ODOG 代币地址 (来自您的合约代码)
         const ODOG_TOKEN_ADDRESS = "0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8";
@@ -56,7 +57,6 @@
         // OdogMessageWall NFT 合约的精简 ABI
         const NFT_ABI = [
             "function writeMessage(string message)",
-            "function ownerOf(uint256 tokenId) view returns (address)",
         ];
 
         // IERC20 (ODOG) 合约的精简 ABI
@@ -85,29 +85,40 @@
         // ----------------------------------------------------
 
         async function connectWallet() {
-            if (typeof window.ethereum === 'undefined') {
+            // 确保 Ethers.js 库已加载 (双重保险)
+            if (typeof ethers === 'undefined' || typeof window.ethereum === 'undefined') {
                 statusMessage.className = 'info error';
-                statusMessage.textContent = "未检测到 MetaMask。请安装 MetaMask 或使用支持 Web3 的浏览器。";
+                statusMessage.textContent = "未检测到 Web3 钱包（MetaMask/OKX）。请安装或使用支持 Web3 的浏览器。";
                 return;
             }
 
             try {
-                // 请求连接账户
+                // 1. 请求连接账户 (这里会触发钱包弹出)
                 await window.ethereum.request({ method: 'eth_requestAccounts' });
                 const provider = new ethers.providers.Web3Provider(window.ethereum);
                 
-                // 检查网络是否正确
+                // 2. 检查网络是否正确
                 const network = await provider.getNetwork();
                 if (network.chainId !== TARGET_CHAIN_ID) {
                     statusMessage.className = 'info error';
-                    statusMessage.textContent = `请连接到 X Layer (Chain ID: ${TARGET_CHAIN_ID})。`;
+                    statusMessage.textContent = `请将您的钱包网络切换到 X Layer (Chain ID: ${TARGET_CHAIN_ID})。`;
+                    // 尝试切换网络 (可选，但提升体验)
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: ethers.utils.hexlify(TARGET_CHAIN_ID) }],
+                        });
+                        // 切换成功后，页面会刷新，重新走一遍连接流程
+                    } catch (switchError) {
+                        console.log("无法自动切换网络:", switchError);
+                    }
                     return;
                 }
 
                 signer = provider.getSigner();
                 currentAccount = await signer.getAddress();
                 
-                // 初始化合约
+                // 3. 初始化合约
                 nftContract = new ethers.Contract(NFT_CONTRACT_ADDRESS, NFT_ABI, signer);
                 odogContract = new ethers.Contract(ODOG_TOKEN_ADDRESS, ERC20_ABI, signer);
 
@@ -116,12 +127,13 @@
                 connectButton.textContent = '已连接';
                 connectButton.disabled = true;
                 
+                // 4. 检查授权状态
                 checkApproval();
                 
             } catch (error) {
-                console.error(error);
+                console.error("连接失败:", error);
                 statusMessage.className = 'info error';
-                statusMessage.textContent = "连接失败，请检查您的钱包。";
+                statusMessage.textContent = "连接失败。您可能拒绝了连接请求。";
             }
         }
 
@@ -129,21 +141,24 @@
             resultDiv.textContent = "正在检查 ODOG 授权状态...";
             
             try {
-                // 检查是否授权 NFT 合约花费 ODOG
                 const allowance = await odogContract.allowance(currentAccount, NFT_CONTRACT_ADDRESS);
                 
                 if (allowance.gte(TOKEN_AMOUNT)) {
+                    // 已授权
                     resultDiv.className = 'info success';
                     resultDiv.textContent = "ODOG 授权已通过。您可以开始铸造。";
                     mintButton.classList.remove('disabled-button');
+                    mintButton.textContent = "铸造 NFT";
+                    mintButton.onclick = mintNFT; // 绑定铸造函数
                     mintButton.disabled = false;
                 } else {
+                    // 未授权或授权不足
                     resultDiv.className = 'info';
-                    resultDiv.textContent = "您需要授权 NFT 合约花费 100 ODOG。请点击下方授权按钮。";
+                    resultDiv.textContent = "您需要授权 NFT 合约花费 100 ODOG。请点击授权按钮。";
                     mintButton.textContent = "授权 ODOG";
                     mintButton.classList.remove('disabled-button');
-                    mintButton.disabled = false;
                     mintButton.onclick = approveOdog; // 绑定授权函数
+                    mintButton.disabled = false;
                 }
             } catch (error) {
                 console.error("检查授权失败:", error);
@@ -157,13 +172,13 @@
             mintButton.disabled = true;
 
             try {
-                // 授权一个非常大的值，避免每次都授权
-                const maxUint256 = ethers.constants.MaxUint256; 
+                // 授权一个非常大的值 (MaxUint256)
+                const maxUint255 = ethers.constants.MaxUint256; 
                 const tx = await odogContract.approve(NFT_CONTRACT_ADDRESS, maxUint255);
                 
                 resultDiv.textContent = `授权交易已发送! Hash: ${tx.hash.substring(0, 10)}... 正在等待确认...`;
                 
-                await tx.wait(); // 等待交易被打包
+                await tx.wait(); 
                 
                 resultDiv.className = 'info success';
                 resultDiv.textContent = "授权成功！现在您可以铸造 NFT。";
@@ -175,7 +190,7 @@
             } catch (error) {
                 console.error("授权失败:", error);
                 resultDiv.className = 'info error';
-                resultDiv.textContent = "授权失败。请检查您的 MetaMask 交易。";
+                resultDiv.textContent = "授权失败。请检查您的钱包交易。";
                 mintButton.disabled = false;
             }
         }
@@ -189,7 +204,7 @@
                 return;
             }
 
-            // 客户端检查 500 字节限制
+            // 客户端检查 500 字节限制 (双重保险，合约端也有检查)
             if (new TextEncoder().encode(message).length > 500) {
                  resultDiv.className = 'info error';
                 resultDiv.textContent = "留言内容超过 500 字节限制！请缩短。";
@@ -208,14 +223,13 @@
                 await tx.wait(); // 等待交易被打包
 
                 resultDiv.className = 'info success';
-                resultDiv.textContent = `🎉 铸造成功！您可以在区块链浏览器上查看交易：${tx.hash}`;
+                resultDiv.textContent = `🎉 铸造成功！您可以在 X Layer 浏览器上查看交易：${tx.hash}`;
                 
             } catch (error) {
                 console.error("铸造失败:", error);
                 
                 let errorMessage = "铸造失败。可能是授权不足、ODOG余额不足或留言为空。";
-                // 尝试提取 MetaMask 错误信息
-                if (error.message.includes("execution reverted")) {
+                if (error.message && error.message.includes("execution reverted")) {
                     errorMessage = "铸造失败: 合约执行被回退。请检查 ODOG 余额和授权是否足够。";
                 }
                 
@@ -224,6 +238,8 @@
                 
             } finally {
                 mintButton.disabled = false;
+                // 成功或失败后，重新检查授权状态，确保按钮状态正确
+                checkApproval(); 
             }
         }
 
@@ -233,16 +249,11 @@
         // ----------------------------------------------------
         
         connectButton.addEventListener('click', connectWallet);
-        // 默认情况下，铸造按钮点击后执行 checkApproval 中绑定的函数
         
-        // 监听账户和网络变化
+        // 监听账户和网络变化，提高用户体验
         if (window.ethereum) {
-            window.ethereum.on('accountsChanged', (accounts) => {
-                if (accounts.length > 0) {
-                    connectWallet();
-                } else {
-                    window.location.reload(); // 账户断开连接时刷新页面
-                }
+            window.ethereum.on('accountsChanged', () => {
+                window.location.reload(); // 账户变化时刷新页面
             });
 
             window.ethereum.on('chainChanged', () => {
