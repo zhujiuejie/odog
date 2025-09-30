@@ -8,274 +8,187 @@
         body {
             background-color: #15202b;
             color: white;
-            font-family: Arial, sans-serif;
+            font-family: Arial, Noto Sans CJK SC, sans-serif;
+            margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
         }
         .container {
             text-align: center;
+            background: rgba(21, 32, 43, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+        }
+        input, textarea, button {
+            display: block;
+            width: 90%;
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 14px;
         }
         textarea {
-            width: 300px;
             height: 100px;
-            background-color: #1c252e;
-            color: white;
-            border: 1px solid #333;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
+            resize: none;
         }
         button {
             background-color: #1da1f2;
-            color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            color: white;
             cursor: pointer;
         }
         button:hover {
             background-color: #1a91da;
         }
-        #messageDisplay {
+        #messageOutput {
             margin-top: 20px;
             word-wrap: break-word;
-            max-width: 300px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Odog Message Wall</h2>
-        <textarea id="messageInput" placeholder="输入你的留言 (最多100字符)"></textarea>
-        <br>
-        <button onclick="approveAndMint()">Mint NFT</button>
-        <div id="messageDisplay"></div>
+        <button onclick="connectWallet()">连接MetaMask</button>
+        <textarea id="messageInput" placeholder="输入你的消息（限400字节）"></textarea>
+        <button onclick="approveAndWrite()">写消息并授权</button>
+        <input id="tokenIdInput" placeholder="输入Token ID查询" type="number">
+        <button onclick="getMessage()">查询消息</button>
+        <div id="messageOutput"></div>
+        <div id="status"></div>
     </div>
 
     <script>
-        const contractAddress = "0x3e1cdE96DDdFE450742bF03b640dE0b4a2a384Be";
-        const chainId = 196; // X Layer Mainnet Chain ID
-        const rpcUrl = "https://l2rpc.xlayer.network"; // X Layer RPC 端点
-        const chainName = "X Layer Mainnet";
-        const currency = "OKB";
-        const explorerUrl = "https://web3.okx.com/zh-hans/explorer/x-layer";
-        const odogTokenAddress = "0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8"; // ODOG 代币地址
-
+        let web3;
+        let contract;
+        const contractAddress = '0x70B82Dd3FcF13fB3C6Fe6e80997b80240256Cc43';
+        const odogTokenAddress = '0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8';
         const abi = [
+            // IERC20 ABI (仅需要transferFrom)
+            {
+                "constant": false,
+                "inputs": [
+                    {"name": "from", "type": "address"},
+                    {"name": "to", "type": "address"},
+                    {"name": "value", "type": "uint256"}
+                ],
+                "name": "transferFrom",
+                "outputs": [{"name": "", "type": "bool"}],
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {"name": "spender", "type": "address"},
+                    {"name": "value", "type": "uint256"}
+                ],
+                "name": "approve",
+                "outputs": [{"name": "", "type": "bool"}],
+                "type": "function"
+            },
+            // OdogMessageWall ABI
             {
                 "inputs": [],
                 "stateMutability": "nonpayable",
                 "type": "constructor"
             },
             {
-                "inputs": [
-                    {
-                        "internalType": "string",
-                        "name": "message",
-                        "type": "string"
-                    }
-                ],
+                "inputs": [],
+                "name": "ODOG_TOKEN",
+                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "string", "name": "message", "type": "string"}],
                 "name": "writeMessage",
                 "outputs": [],
                 "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
-                "inputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "tokenId",
-                        "type": "uint256"
-                    }
-                ],
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
                 "name": "getMessage",
-                "outputs": [
-                    {
-                        "internalType": "string",
-                        "name": "",
-                        "type": "string"
-                    }
-                ],
+                "outputs": [{"internalType": "string", "name": "", "type": "string"}],
                 "stateMutability": "view",
                 "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "tokenId",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "tokenURI",
-                "outputs": [
-                    {
-                        "internalType": "string",
-                        "name": "",
-                        "type": "string"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"  // 修正了这里的 "type" 为 "function"
             },
             {
                 "inputs": [],
                 "name": "totalSupply",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
                 "stateMutability": "view",
                 "type": "function"
             }
         ];
 
-        const erc20Abi = [
-            {
-                "constant": false,
-                "inputs": [
-                    { "name": "_spender", "type": "address" },
-                    { "name": "_value", "type": "uint256" }
-                ],
-                "name": "approve",
-                "outputs": [{ "name": "", "type": "bool" }],
-                "type": "function"
-            },
-            {
-                "constant": true,
-                "inputs": [
-                    { "name": "_owner", "type": "address" },
-                    { "name": "_spender", "type": "address" }
-                ],
-                "name": "allowance",
-                "outputs": [{ "name": "", "type": "uint256" }],
-                "type": "function"
-            }
-        ];
-
-        let contract;
-        let odogContract;
-        let accounts;
-        let web3;
-
-        async function addAndSwitchChain() {
-            if (window.ethereum) {
-                try {
-                    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-                    if (parseInt(currentChainId, 16) !== chainId) {
-                        await window.ethereum.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [{
-                                chainId: '0x' + chainId.toString(16),
-                                chainName: chainName,
-                                nativeCurrency: { name: currency, symbol: currency, decimals: 18 },
-                                rpcUrls: [rpcUrl],
-                                blockExplorerUrls: [explorerUrl]
-                            }]
-                        });
-                        await window.ethereum.request({
-                            method: 'wallet_switchEthereumChain',
-                            params: [{ chainId: '0x' + chainId.toString(16) }]
-                        });
-                    }
-                } catch (error) {
-                    console.error("添加/切换网络失败:", error);
-                    if (error.code === 4001) {
-                        alert("用户拒绝添加网络，请手动在 MetaMask 中添加 X Layer。");
-                    } else {
-                        alert("网络添加失败，请检查 RPC 或手动添加。");
-                    }
-                }
-            } else {
-                alert("请安装 MetaMask！");
-            }
-        }
-
         async function connectWallet() {
             if (window.ethereum) {
                 try {
-                    await addAndSwitchChain();
-                    accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
                     web3 = new Web3(window.ethereum);
                     contract = new web3.eth.Contract(abi, contractAddress);
-                    odogContract = new web3.eth.Contract(erc20Abi, odogTokenAddress);
-                    console.log("Connected to X Layer:", accounts[0]);
+                    document.getElementById('status').innerText = '钱包连接成功！';
                 } catch (error) {
-                    console.error("连接钱包失败:", error);
-                    alert("请安装 MetaMask 并连接钱包！");
+                    document.getElementById('status').innerText = '连接失败: ' + error.message;
                 }
             } else {
-                alert("请安装 MetaMask！");
+                document.getElementById('status').innerText = '请安装MetaMask！';
             }
         }
 
-        async function approveAndMint() {
-            if (!contract) await connectWallet();
-            const message = document.getElementById("messageInput").value.trim();
-            if (message.length === 0) {
-                alert("留言不能为空！");
-                return;
-            }
-            if (message.length > 100) {
-                alert("留言不能超过100字符！");
+        async function approveAndWrite() {
+            if (!web3 || !contract) {
+                document.getElementById('status').innerText = '请先连接钱包！';
                 return;
             }
 
-            // 添加上次一样的提示
-            const confirmMint = confirm("铸造 NFT 将消耗 100 ODOG，这些代币将被永久销毁到 DEAD_ADDRESS。确认继续吗？");
-            if (!confirmMint) {
+            const accounts = await web3.eth.getAccounts();
+            const message = document.getElementById('messageInput').value;
+            if (bytesLength(message) > 400) {
+                document.getElementById('status').innerText = '消息长度超过400字节！';
                 return;
             }
 
             try {
-                // 检查当前授权金额
-                const allowance = await odogContract.methods.allowance(accounts[0], contractAddress).call();
-                const requiredAmount = web3.utils.toWei("100", "ether"); // 100 ODOG
-                if (web3.utils.toBN(allowance).lt(web3.utils.toBN(requiredAmount))) {
-                    // 授权 100 ODOG
-                    await odogContract.methods.approve(contractAddress, requiredAmount).send({ from: accounts[0] });
-                    alert("授权成功，请再次点击 Mint NFT 完成铸造！");
-                    return;  // 授权后停止，等待用户再次点击
+                const odogToken = new web3.eth.Contract(abi, odogTokenAddress);
+                const amount = web3.utils.toWei('100', 'ether'); // 100 ODOG
+                const allowance = await odogToken.methods.allowance(accounts[0], contractAddress).call();
+                if (web3.utils.toBN(allowance).lt(web3.utils.toBN(amount))) {
+                    await odogToken.methods.approve(contractAddress, amount).send({ from: accounts[0] });
+                    document.getElementById('status').innerText = '代币授权成功，等待确认...';
                 }
 
-                // Mint NFT
                 await contract.methods.writeMessage(message).send({ from: accounts[0] });
-                alert("NFT 铸造成功！请查看你的钱包。");
-                document.getElementById("messageInput").value = "";
-                displayLatestMessage();
+                document.getElementById('status').innerText = '消息写入成功！';
+                document.getElementById('messageInput').value = '';
             } catch (error) {
-                console.error("操作失败:", error);
-                alert("操作失败，请确保有足够的 ODOG 代币和 OKB Gas 费！错误: " + error.message);
+                document.getElementById('status').innerText = '操作失败: ' + error.message;
             }
         }
 
-        async function displayLatestMessage() {
-            if (!contract) await connectWallet();
+        async function getMessage() {
+            if (!web3 || !contract) {
+                document.getElementById('status').innerText = '请先连接钱包！';
+                return;
+            }
+
+            const tokenId = document.getElementById('tokenIdInput').value;
             try {
-                const totalSupply = await contract.methods.totalSupply().call();
-                if (totalSupply > 0) {
-                    const latestTokenId = totalSupply;
-                    const message = await contract.methods.getMessage(latestTokenId).call();
-                    document.getElementById("messageDisplay").innerText = `最新留言 (Token #${latestTokenId}): ${message}`;
-                }
+                const message = await contract.methods.getMessage(tokenId).call();
+                document.getElementById('messageOutput').innerText = '消息: ' + message;
             } catch (error) {
-                console.error("获取留言失败:", error);
+                document.getElementById('messageOutput').innerText = '查询失败或Token不存在';
             }
         }
 
-        window.onload = async () => {
-            if (window.ethereum) {
-                await connectWallet();
-                await displayLatestMessage();
-            }
-        };
+        function bytesLength(str) {
+            let bytes = new TextEncoder().encode(str);
+            return bytes.length;
+        }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
 </body>
 </html>
