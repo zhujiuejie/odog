@@ -68,30 +68,9 @@
         let contract;
         const contractAddress = '0x70B82Dd3FcF13fB3C6Fe6e80997b80240256Cc43';
         const odogTokenAddress = '0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8';
-        const abi = [
-            // IERC20 ABI (仅需要transferFrom和approve)
-            {
-                "constant": false,
-                "inputs": [
-                    {"name": "from", "type": "address"},
-                    {"name": "to", "type": "address"},
-                    {"name": "value", "type": "uint256"}
-                ],
-                "name": "transferFrom",
-                "outputs": [{"name": "", "type": "bool"}],
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [
-                    {"name": "spender", "type": "address"},
-                    {"name": "value", "type": "uint256"}
-                ],
-                "name": "approve",
-                "outputs": [{"name": "", "type": "bool"}],
-                "type": "function"
-            },
-            // OdogMessageWall ABI
+
+        // OdogMessageWall ABI
+        const odogAbi = [
             {
                 "inputs": [],
                 "stateMutability": "nonpayable",
@@ -127,12 +106,47 @@
             }
         ];
 
+        // IERC20 ABI
+        const erc20Abi = [
+            {
+                "constant": true,
+                "inputs": [
+                    {"name": "owner", "type": "address"},
+                    {"name": "spender", "type": "address"}
+                ],
+                "name": "allowance",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {"name": "spender", "type": "address"},
+                    {"name": "value", "type": "uint256"}
+                ],
+                "name": "approve",
+                "outputs": [{"name": "", "type": "bool"}],
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {"name": "from", "type": "address"},
+                    {"name": "to", "type": "address"},
+                    {"name": "value", "type": "uint256"}
+                ],
+                "name": "transferFrom",
+                "outputs": [{"name": "", "type": "bool"}],
+                "type": "function"
+            }
+        ];
+
         async function connectWallet() {
             if (window.ethereum) {
                 try {
                     await window.ethereum.request({ method: 'eth_requestAccounts' });
                     web3 = new Web3(window.ethereum);
-                    contract = new web3.eth.Contract(abi, contractAddress);
+                    contract = new web3.eth.Contract(odogAbi, contractAddress);
                     document.getElementById('status').innerText = '钱包连接成功！';
                 } catch (error) {
                     document.getElementById('status').innerText = '连接失败: ' + error.message;
@@ -156,7 +170,7 @@
             }
 
             try {
-                const odogToken = new web3.eth.Contract(abi, odogTokenAddress);
+                const odogToken = new web3.eth.Contract(erc20Abi, odogTokenAddress);
                 const amount = web3.utils.toWei('100', 'ether'); // 100 ODOG
                 const allowance = await odogToken.methods.allowance(accounts[0], contractAddress).call();
                 if (web3.utils.toBN(allowance).lt(web3.utils.toBN(amount))) {
