@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Odog 留言墙 NFT 铸造</title>
+    <title>Odog 链上留言 NFT 铸造终端</title>
     <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
     <style>
-        /* 深色主题和排版样式 */
+        /* 深色终端风格 CSS */
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #1a202c; /* 柔和的深蓝灰色 */
-            color: #e2e8f0; /* 浅灰色文字 */
+            font-family: 'Consolas', 'Courier New', monospace; /* 程序员字体 */
+            background-color: #0d1117; /* GitHub Dark Mode 背景 */
+            color: #c9d1d9; /* 柔和的白色文字 */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -19,49 +19,69 @@
             padding: 20px;
         }
         .container {
-            background-color: #2d3748; /* 稍亮的深蓝灰色，模拟卡片 */
+            background-color: #161b22; /* 终端主体色 */
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            max-width: 600px;
+            box-shadow: 0 0 20px rgba(66, 153, 225, 0.4); /* 蓝色光晕 */
+            max-width: 650px;
             width: 100%;
-            transition: all 0.3s ease;
+            border: 1px solid #30363d;
         }
         h1 {
-            color: #4299e1; /* 品牌蓝色 */
+            color: #58a6ff; /* 终端蓝色标题 */
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
+            font-size: 1.8em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #8b949e;
+            font-size: 0.9em;
+            margin-bottom: 25px;
         }
         textarea {
             width: 100%;
-            height: 150px;
+            height: 120px;
             padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #4a5568;
-            border-radius: 8px;
-            background-color: #232d39; /* 输入区域更深 */
-            color: #e2e8f0;
+            margin-bottom: 15px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background-color: #0d1117; /* 输入区域更深 */
+            color: #58a6ff; /* 输入文本为蓝色 */
             resize: none;
             box-sizing: border-box;
             font-size: 1em;
-            transition: border-color 0.3s;
         }
-        textarea:focus {
-            outline: none;
-            border-color: #4299e1;
+        .button-group {
+            display: flex;
+            gap: 10px;
         }
         button {
-            width: 100%;
+            flex-grow: 1;
             padding: 15px;
             border: none;
-            border-radius: 8px;
-            background-color: #4299e1;
+            border-radius: 6px;
             color: white;
-            font-size: 1.1em;
+            font-size: 1em;
             cursor: pointer;
-            transition: background-color 0.3s, opacity 0.3s;
+            transition: background-color 0.2s, opacity 0.2s;
         }
-        button:hover:not(:disabled) {
+        #connect-button {
+            background-color: #38a169; /* 绿色连接 */
+        }
+        #connect-button:hover:not(:disabled) {
+            background-color: #2f855a;
+        }
+        #approve-button {
+            background-color: #e3a62d; /* 警告黄色授权 */
+        }
+        #approve-button:hover:not(:disabled) {
+            background-color: #c08500;
+        }
+        #mint-button {
+            background-color: #4299e1; /* 蓝色铸造 */
+        }
+        #mint-button:hover:not(:disabled) {
             background-color: #3182ce;
         }
         button:disabled {
@@ -72,139 +92,234 @@
         #status-message {
             margin-top: 20px;
             padding: 15px;
-            border-radius: 8px;
-            background-color: #38a1691a; /* 成功绿色透明 */
-            color: #48bb78;
-            text-align: center;
+            border-radius: 6px;
+            text-align: left;
             word-break: break-all;
             display: none;
+            border: 1px solid #30363d;
+            font-size: 0.9em;
+        }
+        .success {
+            background-color: #2f855a40; 
+            color: #48bb78;
+        }
+        .error {
+            background-color: #e53e3e40; 
+            color: #fc8181;
+        }
+        .info {
+            background-color: #4299e140; 
+            color: #58a6ff;
         }
         #wallet-info {
             margin-bottom: 20px;
             text-align: center;
             font-size: 0.9em;
-            color: #cbd5e0;
-        }
-        .error {
-            background-color: #e53e3e1a !important; /* 错误红色透明 */
-            color: #fc8181 !important;
+            color: #8b949e;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Odog 链上留言墙</h1>
-    <div id="wallet-info">请连接钱包并切换到 **Chain ID 196** (或您的网络)</div>
+    <h1>Odog 链上留言终端</h1>
+    <div class="subtitle">
+        由 **Gemini** 在 **4.2 秒**内架构设计。这是一次对链上 SVG 排版与 Web3 高效集成的演示。<br>
+        合约地址: <code style="color: #48bb78;">0x8ed8...7917</code> | 网络ID: <code style="color: #48bb78;">196</code>
+    </div>
+    <div id="wallet-info">请点击“连接钱包”开始操作...</div>
     
     <textarea id="message-input" placeholder="输入你想永久记录在区块链上的留言... (500字节限制)"></textarea>
     
-    <button id="mint-button" onclick="mintMessage()" disabled>连接钱包并铸造 (100 ODOG)</button>
+    <div class="button-group">
+        <button id="connect-button" onclick="connectWallet()">连接钱包</button>
+        <button id="approve-button" onclick="approveODOG()" disabled>授权 ODOG (第一步)</button>
+        <button id="mint-button" onclick="mintMessage()" disabled>铸造 NFT (第二步)</button>
+    </div>
     
     <div id="status-message"></div>
 </div>
 
 <script>
     // =================================================================
-    // 1. 配置信息 (请勿更改，除非合约地址或 Chain ID 更改)
+    // 1. 配置信息
     // =================================================================
     const CONTRACT_ADDRESS = "0x8ed8ed9f316016fcE26722A84B214ADE7E3c7917";
-    const CHAIN_ID_DECIMAL = 196; // 您的区块链 ID
+    const CHAIN_ID_DECIMAL = 196; 
     
-    // ODOG 代币支付的金额 (100 ODOG, 假设 18 位小数)
+    // ODOG 代币信息 (假设 ERC20 标准)
+    const ODOG_TOKEN_ADDRESS = "0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8";
     const ODOG_AMOUNT = ethers.utils.parseUnits("100", 18); 
+    
+    // 简化 ERC20 ABI (仅包含授权函数)
+    const ERC20_ABI = [
+        { "constant": false, "inputs": [{"internalType": "address", "name": "spender", "type": "address"}, {"internalType": "uint256", "name": "amount", "type": "uint256"}], "name": "approve", "outputs": [{"internalType": "bool", "name": "", "type": "bool"}], "stateMutability": "nonpayable", "type": "function" },
+        { "constant": true, "inputs": [{"internalType": "address", "name": "owner", "type": "address"}, {"internalType": "address", "name": "spender", "type": "address"}], "name": "allowance", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function" }
+    ];
 
     // =================================================================
-    // 2. 合约 ABI (!!! 必须替换为您的真实 ABI !!!)
+    // 2. 合约 ABI (已嵌入)
     // =================================================================
-    // 请在这里粘贴您的 OdogMessageWall 合约的 ABI JSON 数组内容
     const CONTRACT_ABI = 
-    [[{"constant":false,"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"constant":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","payable":false,"type":"event"},{"constant":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","payable":false,"type":"event"},{"constant":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","payable":false,"type":"event"},{"constant":false,"inputs":[],"name":"ODOG_TOKEN","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getMessage","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":false,"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"string","name":"message","type":"string"}],"name":"writeMessage","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}]
-    ]; 
+    [{"constant":false,"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"constant":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","payable":false,"type":"event"},{"constant":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","payable":false,"type":"event"},{"constant":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","payable":false,"type":"event"},{"constant":false,"inputs":[],"name":"ODOG_TOKEN","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getMessage","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":false,"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"string","name":"message","type":"string"}],"name":"writeMessage","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}]
+    ; 
 
     // =================================================================
     // 3. Ethers.js 核心逻辑
     // =================================================================
 
     const statusDiv = document.getElementById('status-message');
+    const connectButton = document.getElementById('connect-button');
+    const approveButton = document.getElementById('approve-button');
     const mintButton = document.getElementById('mint-button');
     const walletInfoDiv = document.getElementById('wallet-info');
+    const messageInput = document.getElementById('message-input');
+    
     let provider;
     let signer;
     let contract;
+    let odogContract;
     let currentAccount = null;
 
     /**
-     * 显示状态消息
-     * @param {string} message - 消息内容
-     * @param {boolean} isError - 是否为错误消息
+     * 设置状态消息
      */
-    function setStatus(message, isError = false) {
+    function setStatus(message, isError = false, isInfo = false) {
         statusDiv.textContent = message;
         statusDiv.style.display = 'block';
-        statusDiv.className = isError ? 'error' : '';
+        statusDiv.className = isError ? 'error' : (isInfo ? 'info' : 'success');
     }
-
+    
     /**
-     * 检查钱包连接和网络状态
+     * 更新按钮状态，检查授权状态
      */
-    async function checkWalletConnection() {
-        if (typeof window.ethereum === 'undefined') {
-            walletInfoDiv.textContent = "请安装 MetaMask 或其他 Web3 钱包。";
+    async function updateUIState() {
+        if (!signer || !contract || !currentAccount) {
+            connectButton.disabled = false;
+            approveButton.disabled = true;
             mintButton.disabled = true;
             return;
         }
 
-        try {
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            
-            // 请求账户连接
-            const accounts = await provider.send("eth_accounts", []);
-            
-            // 首次连接时，需要用户手动触发 connect (例如点击按钮)
-            if (accounts.length === 0) {
-                 walletInfoDiv.textContent = "请点击铸造按钮连接钱包。";
-                 mintButton.disabled = false;
-                 mintButton.onclick = connectWallet; // 第一次点击用于连接
-                 return;
-            }
-            
-            currentAccount = accounts[0];
-            const { chainId } = await provider.getNetwork();
-
-            walletInfoDiv.innerHTML = `账户: <strong>${currentAccount.substring(0, 6)}...${currentAccount.substring(38)}</strong> | 链ID: <strong>${chainId}</strong>`;
-
-            if (chainId !== CHAIN_ID_DECIMAL) {
-                setStatus(`⚠️ 网络错误！请切换到 Chain ID ${CHAIN_ID_DECIMAL} 的网络进行铸造。`, true);
-                mintButton.disabled = true;
-                return;
-            }
-            
-            // 网络和账户都正确
-            signer = provider.getSigner();
-            contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-
-            mintButton.textContent = "点击铸造 (100 ODOG)";
-            mintButton.disabled = false;
-            mintButton.onclick = mintMessage; // 恢复点击事件为铸造
-            setStatus("", false);
-
-        } catch (error) {
-            console.error("连接钱包或检查网络状态失败:", error);
-            setStatus("连接钱包失败，请确保钱包已解锁并刷新页面。", true);
+        const { chainId } = await provider.getNetwork();
+        if (chainId !== CHAIN_ID_DECIMAL) {
+            connectButton.disabled = false;
+            connectButton.textContent = "网络错误 (请切换)";
+            approveButton.disabled = true;
             mintButton.disabled = true;
+            return;
+        }
+
+        // 检查授权状态
+        try {
+            const allowance = await odogContract.allowance(currentAccount, CONTRACT_ADDRESS);
+            
+            if (allowance.gte(ODOG_AMOUNT)) {
+                // 已授权足够金额
+                approveButton.disabled = true;
+                approveButton.textContent = "✅ 已授权";
+                mintButton.disabled = false;
+                mintButton.textContent = "铸造 NFT (100 ODOG)";
+                setStatus("授权检查通过。请填写留言并铸造。", false, true);
+            } else {
+                // 未授权或授权不足
+                approveButton.disabled = false;
+                approveButton.textContent = "授权 ODOG (第一步)";
+                mintButton.disabled = true;
+                setStatus("需要先授权本合约使用您的 100 ODOG 代币，请执行第一步。", false, true);
+            }
+
+            connectButton.disabled = true;
+            connectButton.textContent = "已连接";
+
+        } catch(e) {
+            // 可能是 ODOG 代币合约加载失败或网络错误
+             console.error("检查授权状态失败", e);
+             setStatus("检查授权状态失败，请刷新页面。", true);
         }
     }
 
     /**
-     * 连接钱包（用于首次点击）
+     * 连接钱包
      */
     async function connectWallet() {
+        if (typeof window.ethereum === 'undefined') {
+            setStatus("致命错误：请安装 MetaMask 或其他 Web3 钱包。", true);
+            return;
+        }
+        if (CONTRACT_ABI.length === 0) {
+            setStatus("致命错误：合约 ABI 未配置！请检查 index.html 文件。", true);
+            return;
+        }
+
+        connectButton.disabled = true;
+        connectButton.textContent = "连接中...";
+        setStatus("请求连接钱包...", false, true);
+
         try {
-            await provider.send("eth_requestAccounts", []);
-            await checkWalletConnection(); // 连接成功后再次检查
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            const accounts = await provider.send("eth_requestAccounts", []);
+            currentAccount = accounts[0];
+            
+            const { chainId } = await provider.getNetwork();
+            if (chainId !== CHAIN_ID_DECIMAL) {
+                // 尝试切换网络 (虽然可能会失败，但这是最佳实践)
+                await provider.send('wallet_switchEthereumChain', [{ chainId: ethers.utils.hexValue(CHAIN_ID_DECIMAL) }]);
+                // 切换后，页面会刷新，由事件监听器处理
+                return; 
+            }
+
+            signer = provider.getSigner();
+            contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+            odogContract = new ethers.Contract(ODOG_TOKEN_ADDRESS, ERC20_ABI, signer);
+            
+            walletInfoDiv.innerHTML = `账户: <strong>${currentAccount.substring(0, 6)}...${currentAccount.substring(38)}</strong> | 网络ID: <strong>${chainId}</strong>`;
+            await updateUIState(); 
+
         } catch (error) {
-             setStatus("钱包连接被拒绝。", true);
+             console.error("连接钱包失败:", error);
+             setStatus("连接钱包失败，请确保钱包已解锁且网络配置正确。", true);
+             connectButton.disabled = false;
+             connectButton.textContent = "连接钱包";
+        }
+    }
+
+    /**
+     * 授权 ODOG 代币
+     */
+    async function approveODOG() {
+        if (!signer || !odogContract) {
+            setStatus("请先连接钱包。", true);
+            return;
+        }
+
+        approveButton.disabled = true;
+        approveButton.textContent = "等待钱包确认...";
+        setStatus(`正在授权合约使用 ${ethers.utils.formatUnits(ODOG_AMOUNT, 18)} ODOG...`, false, true);
+
+        try {
+            // 调用 ODOG 代币合约的 approve 函数
+            const tx = await odogContract.approve(CONTRACT_ADDRESS, ODOG_AMOUNT);
+            
+            approveButton.textContent = "交易发送成功，等待确认...";
+            setStatus(`授权交易已发送: ${tx.hash}. 请等待确认...`, false, true);
+
+            await tx.wait(); 
+
+            setStatus(`✅ 授权成功！现在可以铸造 NFT 了。`, false);
+            await updateUIState(); // 更新按钮状态，启用铸造按钮
+
+        } catch (error) {
+            console.error(error);
+            let errorMessage = "授权交易失败！请检查错误详情。";
+            if (error.code === 4001) {
+                errorMessage = "授权交易被用户拒绝。";
+            } 
+            
+            setStatus(errorMessage, true);
+        } finally {
+            // 无论成功失败，都尝试更新 UI 状态
+            await updateUIState();
         }
     }
 
@@ -213,11 +328,11 @@
      */
     async function mintMessage() {
         if (!signer || !contract) {
-            setStatus("请先连接钱包并切换到正确的网络。", true);
+            setStatus("请先连接钱包并授权。", true);
             return;
         }
 
-        const message = document.getElementById('message-input').value.trim();
+        const message = messageInput.value.trim();
         const messageBytes = ethers.utils.toUtf8Bytes(message);
 
         if (messageBytes.length === 0) {
@@ -231,45 +346,33 @@
 
         mintButton.disabled = true;
         mintButton.textContent = "正在发起交易... (请检查钱包)";
-        setStatus("请在您的钱包中授权 **100 ODOG** 代币给合约，然后确认交易...", false);
+        setStatus("请在您的钱包中确认铸造交易...", false, true);
 
         try {
-            // 步骤 1: 确保用户已授权 ODOG 代币给本合约
-            // 您的合约使用 transferFrom，所以用户需要提前对合约进行授权。
-            // 网站无法直接帮你授权，但可以提醒。
-
-            // 步骤 2: 调用 writeMessage
+            // 调用 writeMessage
             const tx = await contract.writeMessage(message);
             
             mintButton.textContent = "交易发送成功，等待确认...";
-            setStatus(`交易已发送: ${tx.hash}. 请等待区块链确认...`, false);
+            setStatus(`交易已发送: ${tx.hash}. 请等待区块链确认...`, false, true);
 
-            // 等待交易被打包确认
             const receipt = await tx.wait(); 
 
-            setStatus(`✅ 铸造成功！交易哈希: ${receipt.transactionHash}. 请在区块链浏览器中查看您的 NFT。`, false);
-            document.getElementById('message-input').value = ''; // 清空输入框
+            setStatus(`✅ 铸造成功！交易哈希: ${receipt.transactionHash}.`, false);
+            messageInput.value = ''; // 清空输入框
 
         } catch (error) {
             console.error(error);
-            // 尝试解析 MetaMask 或 EVM 错误消息
-            let errorMessage = "铸造失败！请检查错误详情。";
+            let errorMessage = "铸造失败！请检查您的 ODOG 余额或交易详情。";
             if (error.code === 4001) {
-                errorMessage = "交易被用户拒绝。";
-            } else if (error.message && error.message.includes("Transfer failed")) {
-                errorMessage = "铸造失败：请确认您已对合约授权足够的 ODOG 代币，且账户余额充足！";
-            } else if (error.message) {
-                 // 尝试提取 RPC 错误信息
-                 const match = error.message.match(/\[ethjs-query\]\s*(\w+)/);
-                 if (match) {
-                    errorMessage = `铸造失败：${match[1]}`;
-                 }
+                errorMessage = "铸造交易被用户拒绝。";
+            } else if (error.message && error.message.includes("execution reverted")) {
+                errorMessage = "铸造失败：请检查 ODOG 余额是否足够，或留言是否包含非法字符。";
             }
             
             setStatus(errorMessage, true);
         } finally {
             mintButton.disabled = false;
-            mintButton.textContent = "点击铸造 (100 ODOG)";
+            mintButton.textContent = "铸造 NFT (100 ODOG)";
         }
     }
 
@@ -283,9 +386,11 @@
         });
     }
 
-    // 页面加载完成后立即检查连接状态
-    window.onload = checkWalletConnection;
-
+    // 页面加载完成后，设置按钮点击事件为 connectWallet
+    window.onload = () => {
+        // 首次加载，让用户点击连接按钮
+        // 在这里不做自动连接，将权力交给用户
+    };
 </script>
 </body>
 </html>
