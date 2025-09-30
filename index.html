@@ -18,11 +18,19 @@
   textarea{width:100%;min-height:140px;padding:12px;border-radius:8px;border:1px solid #30363d;background:transparent;color:var(--accent);resize:vertical}
   .controls{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
   button{padding:10px 14px;border-radius:8px;border:none;cursor:pointer;color:#fff;font-weight:600}
-  .btn-connect{background:#38a169} .btn-approve{background:#e3a62d;color:#000} .btn-mint{background:#4299e1}
+  .btn-connect{background:#38a169} 
+  .btn-approve{background:#e3a62d;color:#000} 
+  .btn-mint{background:#4299e1}
+  #btn-query, #btn-preview {
+    background: #f39c12; /* 橙色，醒目且与主题匹配 */
+    color: #fff; /* 确保文字可见 */
+  }
   button:disabled{opacity:.55;cursor:not-allowed}
   .danger{color:var(--danger);font-weight:700;margin-top:8px}
   .status{margin-top:12px;padding:10px;border-radius:8px;border:1px solid #30363d;word-break:break-word}
-  .status.info{background:#4299e140;color:var(--accent)} .status.success{background:#2f855a40;color:var(--success)} .status.error{background:#e53e3e40;color:var(--danger)}
+  .status.info{background:#4299e140;color:var(--accent)} 
+  .status.success{background:#2f855a40;color:var(--success)} 
+  .status.error{background:#e53e3e40;color:var(--danger)}
   .side{display:flex;flex-direction:column;gap:10px}
   .small{font-size:0.9rem;color:var(--muted)}
   .log{background:#06070a;padding:10px;border-radius:8px;color:#9aa4b2;font-size:12px;max-height:260px;overflow:auto}
@@ -179,7 +187,7 @@ let currentAccount = null;
 function logDebug(...args){
   console.log(...args);
   const l = document.createElement('div');
-  l.textContent = `[${new Date().toLocaleTimeString()}] ${args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')}`;
+  l.textContent = `[${new Date().toLocaleTimeString()} ${args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')}`;
   debugLog.prepend(l);
   if(debugLog.childElementCount>400) debugLog.removeChild(debugLog.lastChild);
 }
@@ -193,35 +201,37 @@ function short(addr){ return addr ? `${addr.slice(0,8)}...${addr.slice(-6)}` : '
 /* -----------------------------
    1) 连接钱包（主流程）
    ----------------------------- */
-async function connectWallet(){
-  try{
-    if(typeof window.ethereum === 'undefined'){
-      setStatus('未检测到钱包插件（MetaMask/OKX），请安装后重试。','error');
+async function connectWallet() {
+  try {
+    if (typeof window.ethereum === 'undefined') {
+      setStatus('未检测到钱包插件（如 MetaMask 或 OKX Wallet），请安装后重试。', 'error');
       return;
     }
     provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
     signer = provider.getSigner();
-    setStatus('请求连接钱包，请在钱包中确认...','info');
+    setStatus('请求连接钱包，请在钱包中确认...', 'info');
     const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    if(!accs || accs.length===0){ setStatus('未获取到账户，请在钱包中解锁并授权。','error'); return; }
+    if (!accs || accs.length === 0) {
+      setStatus('未获取到账户，请在钱包中解锁并授权。', 'error');
+      return;
+    }
     currentAccount = accs[0];
     walletState.textContent = short(currentAccount);
     logDebug('Connected', currentAccount);
 
-    // 初始化合约实例
     nftContract = new ethers.Contract(NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI, signer);
     odogContract = new ethers.Contract(ODOG_TOKEN_ADDRESS, ERC20_ABI, signer);
 
-    // 监听变化
-    if(window.ethereum && window.ethereum.on){
-      window.ethereum.on('accountsChanged', (accs)=>{ logDebug('accountsChanged', accs); window.location.reload(); });
-      window.ethereum.on('chainChanged', (cid)=>{ logDebug('chainChanged', cid); window.location.reload(); });
+    if (window.ethereum && window.ethereum.on) {
+      window.ethereum.on('accountsChanged', (accs) => { logDebug('accountsChanged', accs); window.location.reload(); });
+      window.ethereum.on('chainChanged', (cid) => { logDebug('chainChanged', cid); window.location.reload(); });
     }
 
     await postConnectInit();
-  }catch(e){
+  } catch (e) {
     console.error(e);
-    setStatus('连接失败：' + (e && e.message ? e.message : String(e)),'error');
+    setStatus('连接失败：' + (e && e.message ? e.message : String(e)), 'error');
+    connectButton.disabled = false;
   }
 }
 
