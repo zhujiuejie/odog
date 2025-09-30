@@ -170,17 +170,17 @@
             <button id="mintButton" disabled>请连接钱包以铸造</button>
             <p id="statusMessage"></p>
         </div>
-
-        </main>
+    </main>
 
     <footer>
         <p>&copy; 2024 Odog Message Wall</p>
-        <p>合约地址: <a href="https://www.oklink.com/xlayer/address/0x91e84D5fB4377C6612dcAe56395f1C225Da6b47f" target="_blank">0x91e8...47f</a></p>
+        <p>合约地址: <a href="https://www.oklink.com/xlayer/address/0x6e3391a1A96B1a58dA1704d0302741c024A1f6B2" target="_blank">0x6e33...6B2</a></p>
     </footer>
 
     <script>
         // 核心合约信息
-        const ODOG_MESSAGE_WALL_ADDRESS = '0x91e84D5fB4377C6612dcAe56395f1C225Da6b47f';
+        // *** 修复点: 已更新为新合约地址 ***
+        const ODOG_MESSAGE_WALL_ADDRESS = '0x6e3391a1A96B1a58dA1704d0302741c024A1f6B2'; 
         const ODOG_TOKEN_ADDRESS = '0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8';
         const ODOG_CHAIN_ID = 196; // X Layer Chain ID
 
@@ -243,6 +243,7 @@
 
             try {
                 const odogContract = new ethers.Contract(ODOG_TOKEN_ADDRESS, ODOG_TOKEN_ABI, provider);
+                // 注意：这里使用新合约地址作为 spender
                 const allowance = await odogContract.allowance(currentAccount, ODOG_MESSAGE_WALL_ADDRESS);
 
                 if (allowance >= ODOG_AMOUNT) {
@@ -340,6 +341,7 @@
                     const odogContract = new ethers.Contract(ODOG_TOKEN_ADDRESS, ODOG_TOKEN_ABI, signer);
                     updateStatus("发送授权交易...请在钱包中确认。", false);
 
+                    // 授权给新合约地址
                     const tx = await odogContract.approve(ODOG_MESSAGE_WALL_ADDRESS, ODOG_AMOUNT);
                     updateStatus(`授权交易发送: ${tx.hash}. 等待确认...`, false);
                     
@@ -370,7 +372,8 @@
                 if (error.code === 4001) {
                     errorMessage = "交易被用户拒绝。";
                 } else if (error.message.includes("transfer caller is not owner nor approved")) {
-                    errorMessage = "铸造失败，请确保你已完成代币授权。";
+                    // 对于新合约，用户需要重新授权，这个错误很常见
+                    errorMessage = "铸造失败，请检查是否已对新合约进行授权。";
                 } else {
                     errorMessage += ` 详情: ${error.message.substring(0, 80)}...`;
                 }
