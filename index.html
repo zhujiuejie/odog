@@ -61,13 +61,15 @@
         <div id="status"></div>
     </div>
 
+    <!-- 引入Web3.js -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <script>
         let web3;
         let contract;
         const contractAddress = '0x70B82Dd3FcF13fB3C6Fe6e80997b80240256Cc43';
         const odogTokenAddress = '0xc3F431Cd1B7220cCa703Ee08C24ca645A71e72c8';
         const abi = [
-            // IERC20 ABI (仅需要transferFrom)
+            // IERC20 ABI (仅需要transferFrom和approve)
             {
                 "constant": false,
                 "inputs": [
