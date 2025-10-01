@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAccount, useConnect, useContractWrite, usePrepareContractWrite, useBalance, useContractRead, useWaitForTransaction } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
-import { InjectedConnector } from 'wagmi/connectors/injected';
+import { InjectedConnector } from '@wagmi/connectors/injected';
 import { CHAIN_ID, NFT_CONTRACT_ADDRESS, ODOG_TOKEN_ADDRESS, ODOG_ABI, NFT_ABI, MINT_AMOUNT } from '../constants';
 
 function Minting() {
@@ -29,8 +29,12 @@ function Minting() {
 
   const isApproved = useMemo(() => {
     if (!allowance) return false;
-    // 检查授权额度是否大于或等于铸造所需数量
-    return allowance >= MINT_AMOUNT;
+    try {
+      // allowance 可能为 BigInt 或字符串
+      return BigInt(allowance.toString()) >= BigInt(MINT_AMOUNT.toString());
+    } catch {
+      return false;
+    }
   }, [allowance]);
 
   // --- 3. 授权 (Approve) 逻辑 ---
@@ -82,6 +86,7 @@ function Minting() {
   }
   
   const odogBalance = balanceData ? formatEther(balanceData.value) : '...';
+  const hasEnoughBalance = balanceData && BigInt(balanceData.value.toString()) >= BigInt(MINT_AMOUNT.toString());
   
   return (
     <div className="card">
@@ -107,7 +112,7 @@ function Minting() {
         // 授权按钮
         <button
           onClick={handleApprove}
-          disabled={!writeApprove || isApproving || parseFloat(odogBalance) < 100}
+          disabled={!writeApprove || isApproving || !hasEnoughBalance}
         >
           {isApproving ? '授权中...' : `授权 NFT 合约花费 ${formatEther(MINT_AMOUNT)} ODOG`}
         </button>
@@ -115,14 +120,14 @@ function Minting() {
         // 铸造按钮
         <button
           onClick={handleMint}
-          disabled={!writeMint || isMinting || message.length === 0 || parseFloat(odogBalance) < 100}
+          disabled={!writeMint || isMinting || message.length === 0 || !hasEnoughBalance}
         >
           {isMinting ? '铸造中...' : isMintSuccess ? '铸造成功！' : `铸造 NFT (销毁 100 ODOG)`}
         </button>
       )}
       
       {/* 状态反馈 */}
-      {parseFloat(odogBalance) < 100 && <p style={{ color: 'red' }}>代币余额不足 100 ODOG。</p>}
+  {!hasEnoughBalance && <p style={{ color: 'red' }}>代币余额不足 100 ODOG。</p>}
       {isMintSuccess && <p style={{ color: 'green' }}>NFT 铸造成功！交易哈希: {mintData.hash.slice(0, 10)}...</p>}
       {isApproving && <p style={{ color: 'orange' }}>请在钱包中确认授权交易...</p>}
     </div>

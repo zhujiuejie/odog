@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { WagmiConfig, createConfig } from 'wagmi';
-import { InjectedConnector } from 'wagmi/connectors/injected';
+import { InjectedConnector } from '@wagmi/connectors/injected';
 import { publicProvider } from 'wagmi/providers/public';
 import App from './App.jsx';
 
