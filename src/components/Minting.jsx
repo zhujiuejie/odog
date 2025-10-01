@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { useAccount, useConnect, useContractWrite, usePrepareContractWrite, useBalance, useContractRead, useWaitForTransaction } from 'wagmi';
+import { useAccount, useConnect, useWriteContract, useSimulateContract, useBalance, useContractRead, useWaitForTransaction } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
-import { InjectedConnector } from '@wagmi/connectors/injected';
+// 已适配 wagmi v2.x，不再需要 InjectedConnector
 import { CHAIN_ID, NFT_CONTRACT_ADDRESS, ODOG_TOKEN_ADDRESS, ODOG_ABI, NFT_ABI, MINT_AMOUNT } from '../constants';
 
 function Minting() {
   const { address, isConnected, chain } = useAccount();
-  // 确保连接器指向我们定义的 X Layer 网络
-  const { connect } = useConnect({ connector: new InjectedConnector({ chainId: CHAIN_ID }) });
+  // 直接使用 useConnect 默认连接器
+  const { connect, connectors } = useConnect();
   const [message, setMessage] = useState('');
   
   // --- 1. 获取用户 ODOG 余额 ---
@@ -38,40 +38,38 @@ function Minting() {
   }, [allowance]);
 
   // --- 3. 授权 (Approve) 逻辑 ---
-  const { config: approveConfig } = usePrepareContractWrite({
+  const approveSim = useSimulateContract({
     address: ODOG_TOKEN_ADDRESS,
     abi: ODOG_ABI,
     functionName: 'approve',
     args: [NFT_CONTRACT_ADDRESS, MINT_AMOUNT],
-    enabled: !isApproved && isConnected, // 只有在未授权且连接时才准备
+    query: { enabled: !isApproved && isConnected },
     chainId: CHAIN_ID,
   });
-
-  const { data: approveData, write: writeApprove } = useContractWrite(approveConfig);
-  const { isLoading: isApproving } = useWaitForTransaction({ hash: approveData?.hash });
-
+  const approveWrite = useWriteContract();
+  const isApproving = approveWrite.isPending;
   // --- 4. 铸造 (Mint/writeMessage) 逻辑 ---
-  const { config: mintConfig } = usePrepareContractWrite({
+  const mintSim = useSimulateContract({
     address: NFT_CONTRACT_ADDRESS,
     abi: NFT_ABI,
     functionName: 'writeMessage',
     args: [message],
-    enabled: isApproved && isConnected && message.length > 0, // 只有在授权、连接且输入消息时才准备
+    query: { enabled: isApproved && isConnected && message.length > 0 },
     chainId: CHAIN_ID,
   });
-
-  const { data: mintData, write: writeMint } = useContractWrite(mintConfig);
-  const { isLoading: isMinting, isSuccess: isMintSuccess } = useWaitForTransaction({ hash: mintData?.hash });
+  const mintWrite = useWriteContract();
+  const isMinting = mintWrite.isPending;
+  const isMintSuccess = mintWrite.isSuccess;
 
   // 辅助函数
   const handleMint = () => {
-    if (!writeMint) return;
-    writeMint();
+    if (!mintSim.data) return;
+    mintWrite.writeAsync(mintSim.data.request);
   };
 
   const handleApprove = () => {
-    if (!writeApprove) return;
-    writeApprove();
+    if (!approveSim.data) return;
+    approveWrite.writeAsync(approveSim.data.request);
   };
   
   // UI 渲染逻辑
@@ -79,8 +77,13 @@ function Minting() {
     return (
       <div className="card">
         <h3>NFT 铸造墙 (X Layer)</h3>
-        <p>请连接钱包，并确保网络为 **X Layer (Chain ID: 196)**。</p>
-        <button onClick={() => connect()}>连接钱包</button>
+        <p>请连接钱包，并确保网络为 <b>X Layer (Chain ID: 196)</b>。</p>
+        {/* 列出所有可用连接器 */}
+        {connectors.map((connector) => (
+          <button key={connector.id} onClick={() => connect({ connector })}>
+            连接 {connector.name}
+          </button>
+        ))}
       </div>
     );
   }
@@ -112,7 +115,7 @@ function Minting() {
         // 授权按钮
         <button
           onClick={handleApprove}
-          disabled={!writeApprove || isApproving || !hasEnoughBalance}
+          disabled={!approveSim.data || isApproving || !hasEnoughBalance}
         >
           {isApproving ? '授权中...' : `授权 NFT 合约花费 ${formatEther(MINT_AMOUNT)} ODOG`}
         </button>
@@ -120,7 +123,7 @@ function Minting() {
         // 铸造按钮
         <button
           onClick={handleMint}
-          disabled={!writeMint || isMinting || message.length === 0 || !hasEnoughBalance}
+          disabled={!mintSim.data || isMinting || message.length === 0 || !hasEnoughBalance}
         >
           {isMinting ? '铸造中...' : isMintSuccess ? '铸造成功！' : `铸造 NFT (销毁 100 ODOG)`}
         </button>
@@ -128,8 +131,8 @@ function Minting() {
       
       {/* 状态反馈 */}
   {!hasEnoughBalance && <p style={{ color: 'red' }}>代币余额不足 100 ODOG。</p>}
-      {isMintSuccess && <p style={{ color: 'green' }}>NFT 铸造成功！交易哈希: {mintData.hash.slice(0, 10)}...</p>}
-      {isApproving && <p style={{ color: 'orange' }}>请在钱包中确认授权交易...</p>}
+  {isMintSuccess && <p style={{ color: 'green' }}>NFT 铸造成功！</p>}
+  {isApproving && <p style={{ color: 'orange' }}>请在钱包中确认授权交易...</p>}
     </div>
   );
 }
